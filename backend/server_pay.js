@@ -36,3 +36,7 @@ app.post('/criar-pagamento', async (req, res) => {
     res.status(500).json({ erro: 'Erro ao criar sessão de pagamento' });
   }
 });
+
+app.listen(3001, () => {
+  console.log('Servidor rodando na porta 3000');
+})
