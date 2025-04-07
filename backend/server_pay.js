@@ -7,6 +7,10 @@ app.use(express.json());
 app.use(cors());
 
 
+app.get('/', (req, res) => {
+  res.send('Server Pay rodando!');
+});
+
 app.post('/criar-pagamento', async (req, res) => {
   const { valor, nomeInquilino } = req.body;
 
