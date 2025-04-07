@@ -26,8 +26,8 @@ app.post('/criar-pagamento', async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: 'http://localhost:3000/sucesso',
-      cancel_url: 'http://localhost:3000/cancelado',
+      success_url: 'https://youtube.com',
+      cancel_url: 'https://google.com',
     });
 
     res.json({ url: session.url, sessionId: session.id });
