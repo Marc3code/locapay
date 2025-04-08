@@ -54,6 +54,7 @@ app.post("/webhook", async (req, res) => {
       {
         messaging_product: "whatsapp",
         to: from,
+        type: "text",
         text: { body: resposta },
       },
       {
