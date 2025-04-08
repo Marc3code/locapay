@@ -162,7 +162,7 @@ app.post('/stripe/criar-pagamento', async (req, res) => {
           },
         ],
         mode: 'payment',
-        success_url: 'https://youtube.com',
+        success_url: 'https://locapay-production-844e.up.railway.app',
         cancel_url: 'https://google.com',
       });
   
