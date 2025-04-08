@@ -36,12 +36,13 @@ app.post("/webhook", async (req, res) => {
 
     console.log("phone_number_id:", phone_number_id);
     console.log("from:", from);
-    console.log("resposta:", resposta);
+   
 
     console.log("Mensagem recebida:", msg_body);
 
     // Lógica simples de resposta
     let resposta = "Não entendi...";
+    console.log("resposta:", resposta);
     if (msg_body === "1") resposta = "Você escolheu a opção 1";
     else if (msg_body === "2") resposta = "Você escolheu a opção 2";
     else if (msg_body.toLowerCase().includes("oi"))
