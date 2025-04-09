@@ -26,44 +26,30 @@ app.get("/webhook", (req, res) => {
 
 // Receber mensagens (POST)
 app.post("/webhook", async (req, res) => {
-  const entry = req.body.entry?.[0];
+  const event = req.body.event;
 
-  if (entry?.changes?.[0]?.value?.messages) {
-    const message = entry.changes[0].value.messages[0];
-    const phone_number_id = entry.changes[0].value.metadata.phone_number_id;
-    const from = message.from; // número do usuário
-    const msg_body = message.text?.body || "";
+  if (event === "message") {
+    const msg = req.body.message;
 
-    console.log("phone_number_id:", phone_number_id);
-    console.log("from:", from);
-   
+    const from = msg.from;
+    const text = msg.text || "";
+    console.log("Mensagem recebida de:", from);
+    console.log("Conteúdo:", text);
 
-    console.log("Mensagem recebida:", msg_body);
-
-    // Lógica simples de resposta
+    // Lógica de resposta
     let resposta = "Não entendi...";
-    console.log("resposta:", resposta);
-    if (msg_body === "1") resposta = "Você escolheu a opção 1";
-    else if (msg_body === "2") resposta = "Você escolheu a opção 2";
-    else if (msg_body.toLowerCase().includes("oi"))
+    if (text === "1") resposta = "Você escolheu a opção 1";
+    else if (text === "2") resposta = "Você escolheu a opção 2";
+    else if (text.toLowerCase().includes("oi"))
       resposta = "Olá! Como posso te ajudar?";
 
-    // Enviar resposta
-    await axios.post(
-      `https://graph.facebook.com/v18.0/${phone_number_id}/messages`,
-      {
-        messaging_product: "whatsapp",
-        to: from,
-        type: "text",
-        text: { body: resposta },
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${ACCESS_TOKEN}`,
-        },
-      }
-    );
+    // Enviar resposta via Z-API
+    await axios.post(`https://api.z-api.io/instances/3DF7A08EBAE0F00686418E66062CE0C1/token/7C15DC72E37255AD095DB505/send-text`, {
+      phone: from,
+      message: resposta,
+    });
+
+    console.log("Resposta enviada:", resposta);
   }
 
   res.sendStatus(200);
