@@ -42,8 +42,8 @@ app.post("/webhook", async (req, res) => {
         },
         body: JSON.stringify({
           
-            from: from,
-            text: resposta,
+            phone: from,
+            message: resposta,
           
         }),
       }
