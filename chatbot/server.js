@@ -27,6 +27,11 @@ app.post("/webhook", async (req, res) => {
       resposta = "Olá! Como posso te ajudar?";
 
     // Enviar resposta via Z-API
+    if(resposta === "teste z-api"){
+
+      
+
+    }
     fetch(
       "https://api.z-api.io/instances/3DF7A08EBAE0F00686418E66062CE0C1/token/7C15DC72E37255AD095DB505/send-text",
       {
@@ -37,8 +42,8 @@ app.post("/webhook", async (req, res) => {
         },
         body: JSON.stringify({
           
-            from: "558496132907",
-            text: "1",
+            from: from,
+            text: resposta,
           
         }),
       }
@@ -52,6 +57,7 @@ app.post("/webhook", async (req, res) => {
 
   res.sendStatus(200);
 });
+  
 
 // Iniciar servidor
 app.listen(process.env.PORT || 3000, () => {
