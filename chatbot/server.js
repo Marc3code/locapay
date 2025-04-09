@@ -56,6 +56,6 @@ app.post("/webhook", async (req, res) => {
 });
 
 // Iniciar servidor
-app.listen(3000, () => {
+app.listen(process.env.port||3000, () => {
   console.log("Servidor rodando na porta 3000");
 });
