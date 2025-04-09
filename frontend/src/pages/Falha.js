@@ -1,4 +1,3 @@
-
 function Falha() {
   return (
     <div style={styles.container}>
@@ -11,7 +10,12 @@ function Falha() {
         resolver a situação o quanto antes.
       </p>
 
-      <button onClick={() => alert("entrando em contato")} style={styles.downloadButton}>Fale conosco</button>
+      <button
+        onClick={() => alert("entrando em contato")}
+        style={styles.downloadButton}
+      >
+        Fale conosco
+      </button>
     </div>
   );
 }
@@ -43,7 +47,7 @@ const styles = {
     borderRadius: "6px",
     cursor: "pointer",
     marginRight: "10px",
-  }
+  },
 };
 
 export default Falha;

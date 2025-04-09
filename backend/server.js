@@ -163,7 +163,7 @@ app.post('/stripe/criar-pagamento', async (req, res) => {
         ],
         mode: 'payment',
         success_url: 'https://locapay-production-844e.up.railway.app',
-        cancel_url: 'https://google.com',
+        cancel_url: 'https://locapay-production-844e.up.railway.app/falha',
       });
   
       res.json({ url: session.url, sessionId: session.id });
