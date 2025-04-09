@@ -36,8 +36,11 @@ app.post("/webhook", async (req, res) => {
           "client-token": "F775e0c83a317429f93eefaa27ba21c03S",
         },
         body: JSON.stringify({
-          phone: from, 
-          message: resposta,
+          event: "message",
+          message: {
+            from: from,
+            text: resposta,
+          },
         }),
       }
     )
