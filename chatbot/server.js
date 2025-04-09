@@ -2,8 +2,6 @@ const express = require("express");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const axios = require("axios");
-
 const app = express();
 app.use(express.json());
 
@@ -33,7 +31,7 @@ app.post("/webhook", async (req, res) => {
 
     }
     fetch(
-      "https://api.z-api.io/instances/3DF7A08EBAE0F00686418E66062CE0C1/token/7C15DC72E37255AD095DB505/send-text",
+      "https://api.z-api.io/instances/3DF7A08EBAE0F00686418E66062CE0C1/token/425C336F0BCE5D183AF415A0/send-text",
       {
         method: "POST",
         headers: {
