@@ -1,10 +1,16 @@
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Sucesso from "./pages/Sucesso";
+import Falha from "./pages/Falha";
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <h1>obrigado pelo seu pagamento</h1>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Sucesso/>} />
+        <Route path="/Falha" element={<Falha/>} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
