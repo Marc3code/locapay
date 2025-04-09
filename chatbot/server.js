@@ -7,22 +7,6 @@ const axios = require("axios");
 const app = express();
 app.use(express.json());
 
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
-const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
-
-// Verificação do Webhook (GET)
-app.get("/webhook", (req, res) => {
-  const mode = req.query["hub.mode"];
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
-
-  if (mode && token && mode === "subscribe" && token === VERIFY_TOKEN) {
-    console.log("WEBHOOK VERIFICADO");
-    res.status(200).send(challenge);
-  } else {
-    res.sendStatus(403);
-  }
-});
 
 // Receber mensagens (POST)
 app.post("/webhook", async (req, res) => {
