@@ -1,63 +1,46 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const bodyParser = require("body-parser");
+
 dotenv.config();
-
 const app = express();
-app.use(express.json());
 
-// Receber mensagens (POST)
-app.post("/webhook", async (req, res) => {
-  const event = req.body.event;
+// Twilio envia dados como x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
 
-  if (event === "message") {
-    const msg = req.body.message;
-
-    const from = msg.from;
-    const text = msg.text || "";
-    console.log("Mensagem recebida de:", from);
-    console.log("Conteúdo:", text);
-
-    // Lógica de resposta
-    let resposta = "Não entendi...";
-    if (text === "1") resposta = "Você escolheu a opção 1";
-    else if (text === "2") resposta = "Você escolheu a opção 2";
-    else if (text.toLowerCase().includes("oi"))
-      resposta = "Olá! Como posso te ajudar?";
-
-    // Enviar resposta via Z-API
-    if(resposta === "teste z-api"){
-
-      
-
-    }
-    fetch(
-      "https://api.z-api.io/instances/3DF7A08EBAE0F00686418E66062CE0C1/token/425C336F0BCE5D183AF415A0/send-text",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "client-token": "F775e0c83a317429f93eefaa27ba21c03S",
-        },
-        body: JSON.stringify({
-          
-            phone: from,
-            message: resposta,
-          
-        }),
-      }
-    )
-      .then((response) => response.json())
-      .then((data) => console.log("Resposta da API:", data))
-      .catch((err) => console.error("Erro ao enviar mensagem:", err));
-
-    console.log("Resposta enviada:", resposta);
-  }
-
-  res.sendStatus(200);
+// Rota raiz (opcional)
+app.get("/", (req, res) => {
+  res.send("Webhook do WhatsApp com Twilio está funcionando.");
 });
-  
+
+// Rota de webhook
+app.post("/webhook", (req, res) => {
+  const from = req.body.From; // número que enviou
+  const text = req.body.Body; // texto enviado
+
+  console.log("Mensagem recebida de:", from);
+  console.log("Conteúdo:", text);
+
+  // Lógica de resposta
+  let resposta = "Não entendi...";
+  if (text === "1") resposta = "Você escolheu a opção 1";
+  else if (text === "2") resposta = "Você escolheu a opção 2";
+  else if (text.toLowerCase().includes("oi"))
+    resposta = "Olá! Como posso te ajudar?";
+
+  // Responder com TwiML
+  res.set("Content-Type", "text/xml");
+  res.send(`
+    <Response>
+      <Message>${resposta}</Message>
+    </Response>
+  `);
+
+  console.log("Resposta enviada:", resposta);
+});
 
 // Iniciar servidor
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Servidor rodando na porta 3000");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
