@@ -25,15 +25,31 @@ app.post("/webhook", (req, res) => {
   console.log("Mensagem recebida de:", from);
   console.log("Conteúdo:", text);
 
+  const inquilino_id = fetch(`https://locapay-production.up.railway.app/getinquilino/${from}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      return data.inquilino_id;
+    })
+    .catch((error) => {
+      console.error("Erro ao buscar inquilino:", error);
+      return null;
+  })
+
   let resposta = "";
 
   // Exibe o menu se o usuário mandar "oi" ou "menu"
   if (text === "oi" || text === "menu") {
-    resposta = `Olá! 👋 Como posso te ajudar?\n\nEscolha uma opção:\n1️⃣ Pagar aluguel\n2️⃣ Verificar último pagamento\n3️⃣ Ver data de vencimento`;
+    resposta = `Olá! 👋 Como posso te ajudar?\n\nEscolha uma opção:\n1️⃣ Pagar aluguel\n2️⃣ Verificar pagamentos pendentes\n3️⃣ Ver data de vencimento`;
   } else if (text === "1") {
     resposta = `💳 Link para pagamento do aluguel:\nhttps://locapay-production.up.railway.app/stripe/criar-pagamento`;
   } else if (text === "2") {
-    resposta = `📄 Seu último pagamento foi em 28/03/2025 no valor de R$1.200,00.`;
+    fetch(`https://locapay-production.up.railway.app/pagamentos/${inquilino_id}/status/pendente`)
+    resposta = ``;
   } else if (text === "3") {
     resposta = `📅 Sua próxima data de vencimento é 10/04/2025.`;
   } else {

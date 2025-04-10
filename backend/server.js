@@ -141,6 +141,21 @@ app.post("/pagamentos", (req, res) => {
   );
 });
 
+app.get("/getinquilino/:telefone", (req, res) => {
+  const { telefone } = req.params;
+  const query = "SELECT * FROM inquilinos WHERE telefone = ?";
+  db.query(query, [telefone], (err, results) => {
+    if (err) {
+      console.error("Erro ao buscar inquilino:", err);
+      return res.status(500).json({ erro: "Erro ao buscar inquilino" });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ erro: "Inquilino não encontrado" });
+    }
+    res.json(results[0]);
+  });
+})
+
 app.get("/pagamentos/:inquilino_id/status/:status", (req, res) => {
   const { inquilino_id, status } = req.params;
 
