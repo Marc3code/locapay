@@ -22,7 +22,7 @@ app.post("/webhook", async (req, res) => {
   console.log("Mensagem recebida de:", from);
   console.log("Conteúdo:", text);
 
-  from = from.replace("whatsapp:", "").trim();
+  from = from.replace(" whatsapp:", "").trim();
   from.trim();
   console.log("Número formatado:", from);
 
