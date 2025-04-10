@@ -15,20 +15,27 @@ app.get("/", (req, res) => {
 
 // Rota de webhook
 app.post("/webhook", (req, res) => {
-  const from = req.body.From; // número que enviou
-  const text = req.body.Body; // texto enviado
+  const from = req.body.From;
+  const text = req.body.Body.trim().toLowerCase();
 
   console.log("Mensagem recebida de:", from);
   console.log("Conteúdo:", text);
 
-  // Lógica de resposta
-  let resposta = "Não entendi...";
-  if (text === "1") resposta = "Você escolheu a opção 1";
-  else if (text === "2") resposta = "Você escolheu a opção 2";
-  else if (text.toLowerCase().includes("oi"))
-    resposta = "Olá! Como posso te ajudar?";
+  let resposta = "";
 
-  // Responder com TwiML
+  // Exibe o menu se o usuário mandar "oi" ou "menu"
+  if (text === "oi" || text === "menu") {
+    resposta = `Olá! 👋 Como posso te ajudar?\n\nEscolha uma opção:\n1️⃣ Pagar aluguel\n2️⃣ Verificar último pagamento\n3️⃣ Ver data de vencimento`;
+  } else if (text === "1") {
+    resposta = `💳 Link para pagamento do aluguel:\nLink aqui`;
+  } else if (text === "2") {
+    resposta = `📄 Seu último pagamento foi em 28/03/2025 no valor de R$1.200,00.`;
+  } else if (text === "3") {
+    resposta = `📅 Sua próxima data de vencimento é 10/04/2025.`;
+  } else {
+    resposta = `❌ Não entendi o que você quis dizer.\nDigite *menu* para ver as opções.`;
+  }
+
   res.set("Content-Type", "text/xml");
   res.send(`
     <Response>
