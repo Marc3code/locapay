@@ -15,7 +15,7 @@ app.get("/", (req, res) => {
 
 // Rota de webhook
 app.post("/webhook", async (req, res) => {
-  const from = req.body.From;
+  let from = req.body.From;
   const text = req.body.Body.trim().toLowerCase();
   let resposta = "";
 
