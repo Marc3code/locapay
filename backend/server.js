@@ -141,19 +141,32 @@ app.post("/pagamentos", (req, res) => {
   );
 });
 
-app.get("/pagamentos/:inquilino_id/status/:status", (req, res) => {
-  const { inquilino_id, status } = req.params;
+app.get("/pagamentos", (req, res) => {
+  const { inquilino_id, status } = req.body;
 
-  const query = status ? ( "SELECT * FROM pagamentos WHERE inquilino_id = ?"): ( "SELECT * FROM pagamentos WHERE inquilino_id = ? AND status = ?");
-  
+  if (!inquilino_id ) {
+    return res.status(400).json({ erro: "inquilino_id não foi passado" });
+  }
+  if (status) {
+    const query = "SELECT * FROM pagamentos WHERE inquilino_id = ? AND status = ?";
+    db.query(query, [inquilino_id, status], (err, results) => {
+      if (err) {
+        console.error("Erro ao buscar pagamento:", err);
+        return res.status(500).json({ erro: "Erro ao buscar pagamento" });
+      }
+      res.json(results);
+    });
+  } else {
+    const query = "SELECT * FROM pagamentos WHERE inquilino_id = ?";
+    db.query(query, [inquilino_id], (err, results) => {
+      if (err) {
+        console.error("Erro ao buscar pagamento:", err);
+        return res.status(500).json({ erro: "Erro ao buscar pagamento" });
+      }
+      res.json(results);
+    });
 
-  db.query(query, [inquilino_id], (err, results) => {
-    if (err) {
-      console.error("Erro ao buscar pagamento:", err);
-      return res.status(500).json({ erro: "Erro ao buscar pagamento" });
-    }
-    res.json(results);
-  });
+  }
 })
 
 //---------------Rotas STRIPE--------------------------------------------------//
