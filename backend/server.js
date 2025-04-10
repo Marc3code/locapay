@@ -141,11 +141,11 @@ app.post("/pagamentos", (req, res) => {
   );
 });
 
-app.get("/pagamentos", (req, res) => {
-  const { inquilino_id, status } = req.body;
+app.get("/pagamentos/:inquilino_id/status/:status", (req, res) => {
+  const { inquilino_id, status } = req.params;
 
   if (!inquilino_id ) {
-    return res.status(400).json({ erro: "inquilino_id não foi passado" });
+    return res.status(400).json({ erro: "inquilino_id nao fo passado" });
   }
   if (status) {
     const query = "SELECT * FROM pagamentos WHERE inquilino_id = ? AND status = ?";
