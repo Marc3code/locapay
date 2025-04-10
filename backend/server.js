@@ -141,9 +141,11 @@ app.post("/pagamentos", (req, res) => {
   );
 });
 
-app.get("/pagamentos/:id", (req, res) => {
-  const { inquilino_id } = req.params;
-  const query = "SELECT * FROM pagamentos WHERE inquilino_id = ?";
+app.get("/pagamentos/:inquilino_id/status/:status", (req, res) => {
+  const { inquilino_id, status } = req.params;
+
+  const query = status ? ( "SELECT * FROM pagamentos WHERE inquilino_id = ?"): ( "SELECT * FROM pagamentos WHERE inquilino_id = ? AND status = ?");
+  
 
   db.query(query, [inquilino_id], (err, results) => {
     if (err) {
