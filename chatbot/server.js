@@ -14,79 +14,52 @@ app.get("/", (req, res) => {
 });
 
 // Rota de webhook
-app.post("/webhook", (req, res) => {
+app.post("/webhook", async (req, res) => {
   const from = req.body.From;
   const text = req.body.Body.trim().toLowerCase();
   let resposta = "";
 
   console.log("Mensagem recebida de:", from);
   console.log("Conteúdo:", text);
-  
 
-  const inquilino_id = fetch(
-    `https://locapay-production.up.railway.app/getinquilino/${from}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  )
-    .then((response) => response.json())
-    .then((data) => {
-      return data.inquilino_id;
-    })
-    .catch((error) => {
-      console.error("Erro ao buscar inquilino:", error);
-      return null;
-    });
-    console.log("inquilino_id:", inquilino_id);
-  // Verifica se o inquilino_id foi encontrado
+  let inquilino_id = null;
 
+  try {
+    const response = await fetch(
+      `https://locapay-production.up.railway.app/getinquilino/${from}`
+    );
+    const data = await response.json();
+    inquilino_id = data.inquilino_id;
+  } catch (error) {
+    console.error("Erro ao buscar inquilino:", error);
+  }
 
- 
-
-  // Exibe o menu se o usuário mandar "oi" ou "menu"
   if (text === "oi" || text === "menu") {
     resposta = `Olá! 👋 Como posso te ajudar?\n\nEscolha uma opção:\n1️⃣ Pagar aluguel\n2️⃣ Verificar pagamentos pendentes\n3️⃣ Ver data de vencimento`;
   } else if (text === "1") {
     resposta = `💳 Link para pagamento do aluguel:\nhttps://locapay-production.up.railway.app/stripe/criar-pagamento`;
   } else if (text === "2") {
-    const pendencia = fetch(
-      `https://locapay-production.up.railway.app/pagamentos/${inquilino_id}/status/pendente`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ inquilino_id })
-          .then((response) => response.json())
-          .then((data) => {
-            return data;
-          })
-          .catch((error) => {
-            console.error("Erro ao buscar pendências:", error);
-            return null;
-          }),
-      }
-    );
-    
-    console.log("pendencia:", pendencia);
-    
-    if (pendencia) {
-      const quantidadePendencias = pendencia.length;
-      if (quantidadePendencias > 0) {
-        resposta = `Você possui ${quantidadePendencias} pendências de pagamento.\n\n`;
+    try {
+      const resp = await fetch(
+        `https://locapay-production.up.railway.app/pagamentos/${inquilino_id}/status/pendente`
+      );
+      const pendencia = await resp.json();
+
+      if (pendencia && pendencia.length > 0) {
+        resposta = `Você possui ${pendencia.length} pendências de pagamento.\n\n`;
         pendencia.forEach((p) => {
           resposta += `- Valor: R$ ${
             p.valor_pago
-          }\n- Data de vencimento: ${p.data_vencimento.toLocaleDateString(
-            "pt-BR"
-          )}\n- Status: ${p.status}\n\n`;
+          }\n- Data de vencimento: ${new Date(
+            p.data_vencimento
+          ).toLocaleDateString("pt-BR")}\n- Status: ${p.status}\n\n`;
         });
       } else {
         resposta = `Você não possui pendências de pagamento.`;
       }
+    } catch (error) {
+      console.error("Erro ao buscar pendências:", error);
+      resposta = `❌ Erro ao verificar pendências.`;
     }
   } else if (text === "3") {
     resposta = `📅 Sua próxima data de vencimento é 10/04/2025.`;
