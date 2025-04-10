@@ -74,7 +74,6 @@ app.post("/webhook", (req, res) => {
         resposta = `Você não possui pendências de pagamento.`;
       }
     }
-    resposta = ``;
   } else if (text === "3") {
     resposta = `📅 Sua próxima data de vencimento é 10/04/2025.`;
   } else {
