@@ -33,6 +33,7 @@ app.post("/webhook", async (req, res) => {
       `https://locapay-production.up.railway.app/getinquilino/${from}`
     );
     const data = await response.json();
+    console.log("Dados do inquilino:", data);
     inquilino_id = data.inquilino_id;
   } catch (error) {
     console.error("Erro ao buscar inquilino:", error);
