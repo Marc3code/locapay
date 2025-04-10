@@ -13,24 +13,25 @@ app.get("/", (req, res) => {
   res.send("Webhook do WhatsApp com Twilio está funcionando.");
 });
 
-
-
-
-
 // Rota de webhook
 app.post("/webhook", (req, res) => {
   const from = req.body.From;
   const text = req.body.Body.trim().toLowerCase();
+  let resposta = "";
 
   console.log("Mensagem recebida de:", from);
   console.log("Conteúdo:", text);
+  
 
-  const inquilino_id = fetch(`https://locapay-production.up.railway.app/getinquilino/${from}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
+  const inquilino_id = fetch(
+    `https://locapay-production.up.railway.app/getinquilino/${from}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  )
     .then((response) => response.json())
     .then((data) => {
       return data.inquilino_id;
@@ -38,9 +39,12 @@ app.post("/webhook", (req, res) => {
     .catch((error) => {
       console.error("Erro ao buscar inquilino:", error);
       return null;
-  })
+    });
+    console.log("inquilino_id:", inquilino_id);
+  // Verifica se o inquilino_id foi encontrado
 
-  let resposta = "";
+
+ 
 
   // Exibe o menu se o usuário mandar "oi" ou "menu"
   if (text === "oi" || text === "menu") {
@@ -48,27 +52,37 @@ app.post("/webhook", (req, res) => {
   } else if (text === "1") {
     resposta = `💳 Link para pagamento do aluguel:\nhttps://locapay-production.up.railway.app/stripe/criar-pagamento`;
   } else if (text === "2") {
-    const pendencia = fetch(`https://locapay-production.up.railway.app/pagamentos/${inquilino_id}/status/pendente`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ inquilino_id })
-      .then((response) => response.json())
-      .then((data) => {
-        return data;
-      })
-      .catch((error) => {
-        console.error("Erro ao buscar pendências:", error);
-        return null;
-      })
-    })
+    const pendencia = fetch(
+      `https://locapay-production.up.railway.app/pagamentos/${inquilino_id}/status/pendente`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ inquilino_id })
+          .then((response) => response.json())
+          .then((data) => {
+            return data;
+          })
+          .catch((error) => {
+            console.error("Erro ao buscar pendências:", error);
+            return null;
+          }),
+      }
+    );
+    
+    console.log("pendencia:", pendencia);
+    
     if (pendencia) {
       const quantidadePendencias = pendencia.length;
       if (quantidadePendencias > 0) {
         resposta = `Você possui ${quantidadePendencias} pendências de pagamento.\n\n`;
         pendencia.forEach((p) => {
-          resposta += `- Valor: R$ ${p.valor_pago}\n- Data de vencimento: ${p.data_vencimento.toLocaleDateString("pt-BR")}\n- Status: ${p.status}\n\n`;
+          resposta += `- Valor: R$ ${
+            p.valor_pago
+          }\n- Data de vencimento: ${p.data_vencimento.toLocaleDateString(
+            "pt-BR"
+          )}\n- Status: ${p.status}\n\n`;
         });
       } else {
         resposta = `Você não possui pendências de pagamento.`;
