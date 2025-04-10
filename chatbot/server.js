@@ -13,6 +13,10 @@ app.get("/", (req, res) => {
   res.send("Webhook do WhatsApp com Twilio está funcionando.");
 });
 
+
+
+
+
 // Rota de webhook
 app.post("/webhook", (req, res) => {
   const from = req.body.From;
@@ -27,7 +31,7 @@ app.post("/webhook", (req, res) => {
   if (text === "oi" || text === "menu") {
     resposta = `Olá! 👋 Como posso te ajudar?\n\nEscolha uma opção:\n1️⃣ Pagar aluguel\n2️⃣ Verificar último pagamento\n3️⃣ Ver data de vencimento`;
   } else if (text === "1") {
-    resposta = `💳 Link para pagamento do aluguel:\nLink aqui`;
+    resposta = `💳 Link para pagamento do aluguel:\nhttps://locapay-production.up.railway.app/stripe/criar-pagamento`;
   } else if (text === "2") {
     resposta = `📄 Seu último pagamento foi em 28/03/2025 no valor de R$1.200,00.`;
   } else if (text === "3") {

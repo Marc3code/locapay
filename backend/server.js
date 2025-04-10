@@ -141,6 +141,20 @@ app.post("/pagamentos", (req, res) => {
   );
 });
 
+app.get("/pagamentos/:id", (req, res) => {
+  const { inquilino_id } = req.params;
+  const query = "SELECT * FROM pagamentos WHERE inquilino_id = ?";
+
+  db.query(query, [inquilino_id], (err, results) => {
+    if (err) {
+      console.error("Erro ao buscar pagamento:", err);
+      return res.status(500).json({ erro: "Erro ao buscar pagamento" });
+    }
+    res.json(results);
+  });
+})
+
+//---------------Rotas STRIPE--------------------------------------------------//
 
 // Rota POST - Criar pagamento com Stripe
 app.post('/stripe/criar-pagamento', async (req, res) => {
