@@ -33,6 +33,17 @@ app.post("/webhook", async (req, res) => {
   } catch (error) {
     console.error("Erro ao buscar inquilino:", error);
   }
+  console.log("Inquilino ID:", inquilino_id);
+  if (!inquilino_id) {
+    resposta = `❌ Não consegui identificar você. Por favor, entre em contato com o suporte.`;
+    res.set("Content-Type", "text/xml");
+    res.send(`
+      <Response>
+        <Message>${resposta}</Message>
+      </Response>
+    `);
+    return;
+  }
 
   if (text === "oi" || text === "menu") {
     resposta = `Olá! 👋 Como posso te ajudar?\n\nEscolha uma opção:\n1️⃣ Pagar aluguel\n2️⃣ Verificar pagamentos pendentes\n3️⃣ Ver data de vencimento`;
@@ -44,7 +55,7 @@ app.post("/webhook", async (req, res) => {
         `https://locapay-production.up.railway.app/pagamentos/${inquilino_id}/status/pendente`
       );
       const pendencia = await resp.json();
-
+      console.log("Pendências:", pendencia);
       if (pendencia && pendencia.length > 0) {
         resposta = `Você possui ${pendencia.length} pendências de pagamento.\n\n`;
         pendencia.forEach((p) => {
