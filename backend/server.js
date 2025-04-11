@@ -166,7 +166,7 @@ app.get("/pagamentos/:inquilino_id/status/:status", async (req, res) => {
     const query =
       "SELECT * FROM pagamentos WHERE inquilino_id = ? AND status = ?";
 
-    const [results] = await pool.query(query, [inquilino_id, status]);
+    const [results] = await db.query(query, [inquilino_id, status]);
     res.json(results);
   } catch (err) {
     console.error("Erro ao buscar pagamento:", err);
