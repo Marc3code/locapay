@@ -39,7 +39,6 @@ app.get("/inquilinos", async (req, res) => {
   }
 });
 
-
 // Rota GET - Pagamentos
 app.get("/pagamentos", (req, res) => {
   const query = "SELECT * FROM pagamentos";
@@ -87,17 +86,15 @@ app.post("/inquilinos", (req, res) => {
         console.error("Erro ao adicionar inquilino:", err);
         return res.status(500).json({ erro: "Erro ao adicionar inquilino" });
       }
-      res
-        .status(201)
-        .json({
-          id: results.insertId,
-          imovel_id,
-          nome,
-          numero_imovel,
-          telefone,
-          valor_aluguel,
-          data_vencimento,
-        });
+      res.status(201).json({
+        id: results.insertId,
+        imovel_id,
+        nome,
+        numero_imovel,
+        telefone,
+        valor_aluguel,
+        data_vencimento,
+      });
     }
   );
 });
@@ -127,17 +124,15 @@ app.post("/pagamentos", (req, res) => {
         console.error("Erro ao adicionar pagamento:", err);
         return res.status(500).json({ erro: "Erro ao adicionar pagamento" });
       }
-      res
-        .status(201)
-        .json({
-          id: results.insertId,
-          inquilino_id,
-          stripe_session_id,
-          data_vencimento,
-          data_pagamento,
-          valor_pago,
-          status,
-        });
+      res.status(201).json({
+        id: results.insertId,
+        inquilino_id,
+        stripe_session_id,
+        data_vencimento,
+        data_pagamento,
+        valor_pago,
+        status,
+      });
     }
   );
 });
@@ -159,10 +154,8 @@ app.get("/getinquilino/:telefone", async (req, res) => {
   }
 });
 
-
-
 //-- Rotas GET - Pagamentos por inquilino e status -- ver pendencias
-app.get("/pagamentos/:inquilino_id/status/:status?", async (req, res) => {
+app.get("/pagamentos/:inquilino_id/status/:status", async (req, res) => {
   const { inquilino_id, status } = req.params;
 
   if (!inquilino_id) {
@@ -170,18 +163,10 @@ app.get("/pagamentos/:inquilino_id/status/:status?", async (req, res) => {
   }
 
   try {
-    let query;
-    let values;
+    const query =
+      "SELECT * FROM pagamentos WHERE inquilino_id = ? AND status = ?";
 
-    if (status) {
-      query = "SELECT * FROM pagamentos WHERE inquilino_id = ? AND status = ?";
-      values = [inquilino_id, status];
-    } else {
-      query = "SELECT * FROM pagamentos WHERE inquilino_id = ?";
-      values = [inquilino_id];
-    }
-
-    const [results] = await pool.query(query, values);
+    const [results] = await pool.query(query, [inquilino_id, status]);
     res.json(results);
   } catch (err) {
     console.error("Erro ao buscar pagamento:", err);
@@ -189,39 +174,38 @@ app.get("/pagamentos/:inquilino_id/status/:status?", async (req, res) => {
   }
 });
 
-
 //---------------Rotas STRIPE--------------------------------------------------//
 
 // Rota POST - Criar pagamento com Stripe
-app.post('/stripe/criar-pagamento', async (req, res) => {
-    const { valor, nomeInquilino } = req.body;
-  
-    try {
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [
-          {
-            price_data: {
-              currency: 'brl',
-              product_data: {
-                name: `Aluguel - ${nomeInquilino}`,
-              },
-              unit_amount: Math.round(valor * 100),
+app.post("/stripe/criar-pagamento", async (req, res) => {
+  const { valor, nomeInquilino } = req.body;
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "brl",
+            product_data: {
+              name: `Aluguel - ${nomeInquilino}`,
             },
-            quantity: 1,
+            unit_amount: Math.round(valor * 100),
           },
-        ],
-        mode: 'payment',
-        success_url: 'https://locapay-production-844e.up.railway.app',
-        cancel_url: 'https://locapay-production-844e.up.railway.app/falha',
-      });
-  
-      res.json({ url: session.url, sessionId: session.id });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ erro: 'Erro ao criar sessão de pagamento' });
-    }
-  });
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: "https://locapay-production-844e.up.railway.app",
+      cancel_url: "https://locapay-production-844e.up.railway.app/falha",
+    });
+
+    res.json({ url: session.url, sessionId: session.id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: "Erro ao criar sessão de pagamento" });
+  }
+});
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
