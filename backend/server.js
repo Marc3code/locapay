@@ -28,16 +28,17 @@ app.get("/imoveis", (req, res) => {
 });
 
 // Rota GET - Inquilinos
-app.get("/inquilinos", (req, res) => {
-  const query = "SELECT * FROM inquilinos";
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error("Erro ao buscar inquilinos:", err);
-      return res.status(500).json({ erro: "Erro ao buscar inquilinos" });
-    }
+
+app.get("/inquilinos", async (req, res) => {
+  try {
+    const [results] = await db.pool("SELECT * FROM inquilinos");
     res.json(results);
-  });
+  } catch (err) {
+    console.error("Erro ao buscar inquilinos:", err);
+    res.status(500).json({ erro: "Erro ao buscar inquilinos" });
+  }
 });
+
 
 // Rota GET - Pagamentos
 app.get("/pagamentos", (req, res) => {
@@ -141,21 +142,26 @@ app.post("/pagamentos", (req, res) => {
   );
 });
 
-app.get("/getinquilino/:telefone", (req, res) => {
+app.get("/getinquilino/:telefone", async (req, res) => {
   const { telefone } = req.params;
   const query = "SELECT * FROM inquilinos WHERE telefone = ?";
-  db.query(query, [telefone], (err, results) => {
-    if (err) {
-      console.error("Erro ao buscar inquilino:", err);
-      return res.status(500).json({ erro: "Erro ao buscar inquilino" });
-    }
-    if (results.length === 0) {
-      return res.status(404).json({ erro: "Inquilino não encontrado" });
-    }
-    res.json(results[0]);
-  });
-})
 
+  try {
+    const [results] = await db.query(query, [telefone]);
+    if (results.length > 0) {
+      res.json(results[0]);
+    } else {
+      res.status(404).json({ erro: "Inquilino não encontrado" });
+    }
+  } catch (err) {
+    console.error("Erro ao buscar inquilino:", err);
+    res.status(500).json({ erro: "Erro ao buscar inquilino" });
+  }
+});
+
+
+
+//-- Rotas GET - Pagamentos por inquilino e status -- ver pendencias
 app.get("/pagamentos/:inquilino_id/status/:status", (req, res) => {
   const { inquilino_id, status } = req.params;
 

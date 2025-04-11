@@ -22,24 +22,38 @@ app.post("/webhook", async (req, res) => {
   console.log("Mensagem recebida de:", from);
   console.log("Conteúdo:", text);
 
-  from = from.replace(" whatsapp:", "").trim();
-  from.trim();
-  console.log("Número formatado:", from);
+  const numeroFormatado = from.replace("whatsapp:", "").trim();
+  console.log(numeroFormatado);
 
-  let inquilino_id = null;
+  let inquilino = {};
 
   try {
     const response = await fetch(
-      `https://locapay-production.up.railway.app/getinquilino/${from}`
-    );
-    const data = await response.json();
-    console.log("Dados do inquilino:", data);
-    inquilino_id = data.inquilino_id;
+      `https://locapay-production.up.railway.app/getinquilino/${numeroFormatado}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data) {
+          return data;
+        }else{
+          console.error("Inquilino não encontrado:", data);
+          return null;
+        }
+      })
+      .catch((err) => {
+        console.error("Erro ao buscar inquilino:", err);
+        return null;
+      });
+
+    console.log("response:", response);
+    inquilino = response;
+    console.log("inquilino:", inquilino);
+
   } catch (error) {
     console.error("Erro ao buscar inquilino:", error);
   }
-  console.log("Inquilino ID:", inquilino_id);
-  if (!inquilino_id) {
+  
+  if (!inquilino.id) {
     resposta = `❌ Não consegui identificar você. Por favor, entre em contato com o suporte.`;
     res.set("Content-Type", "text/xml");
     res.send(`
