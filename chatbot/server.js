@@ -22,10 +22,29 @@ app.post("/webhook", async (req, res) => {
   console.log("Mensagem recebida de:", from);
   console.log("Conteúdo:", text);
 
-  const numeroFormatado = from.replace("whatsapp:", "").trim();
-  console.log(numeroFormatado);
+  let numeroFormatado = from.replace("whatsapp:", "").trim();
 
-  let inquilino = {};
+  // Garante que começa com +55
+  if (!numeroFormatado.startsWith("+55")) {
+    numeroFormatado = "+55" + numeroFormatado;
+  }
+
+  // Extrai o DDD e o número
+  const ddd = numeroFormatado.slice(3, 5); // Ex: 84
+  let numero = numeroFormatado.slice(5); // Ex: 996132907 ou 96132907
+
+  // Adiciona o '9' se o número tiver só 8 dígitos (ou seja, sem o nono dígito)
+  if (numero.length === 8) {
+    numero = "9" + numero;
+  } else if (numero.length === 9 && numero[0] !== "9") {
+    // Segurança extra: ainda verifica se o 9 está na frente
+    numero = "9" + numero.slice(1);
+  }
+
+  // Reconstrói o número completo
+  numeroFormatado = `+55${ddd}${numero}`;
+
+  let inquilino = null;
 
   try {
     const response = await fetch(
@@ -35,7 +54,7 @@ app.post("/webhook", async (req, res) => {
       .then((data) => {
         if (data) {
           return data;
-        }else{
+        } else {
           console.error("Inquilino não encontrado:", data);
           return null;
         }
@@ -48,11 +67,10 @@ app.post("/webhook", async (req, res) => {
     console.log("response:", response);
     inquilino = response;
     console.log("inquilino:", inquilino);
-
   } catch (error) {
     console.error("Erro ao buscar inquilino:", error);
   }
-  
+
   if (!inquilino.id) {
     resposta = `❌ Não consegui identificar você. Por favor, entre em contato com o suporte.`;
     res.set("Content-Type", "text/xml");
@@ -64,22 +82,36 @@ app.post("/webhook", async (req, res) => {
     return;
   }
 
-  if (text === "oi" || text === "menu") {
+  function formatarData(date) {
+    const data = new Date(date);
+    const dia = String(data.getDate()).padStart(2, '0');
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const ano = data.getFullYear();
+    return `${dia}/${mes}/${ano}`;
+  }
+
+  if (text || text === "menu") {
     resposta = `Olá! 👋 Como posso te ajudar?\n\nEscolha uma opção:\n1️⃣ Pagar aluguel\n2️⃣ Verificar pagamentos pendentes\n3️⃣ Ver data de vencimento`;
   } else if (text === "1") {
     resposta = `💳 Link para pagamento do aluguel:\nhttps://locapay-production.up.railway.app/stripe/criar-pagamento`;
   } else if (text === "2") {
     try {
+      console.log("Buscando pendências para o inquilino:", inquilino.id);
+
       const resp = await fetch(
-        `https://locapay-production.up.railway.app/pagamentos/${inquilino_id}/status/pendente`
+        `https://locapay-production.up.railway.app/pagamentos/${inquilino.id}/status/pendente`
       );
+
+      console.log("Status da resposta:", resp.status);
+
       const pendencia = await resp.json();
-      console.log("Pendências:", pendencia);
-      if (pendencia && pendencia.length > 0) {
+      console.log("Resposta JSON recebida:", pendencia);
+
+      if (Array.isArray(pendencia) && pendencia.length > 0) {
         resposta = `Você possui ${pendencia.length} pendências de pagamento.\n\n`;
         pendencia.forEach((p) => {
           resposta += `- Valor: R$ ${
-            p.valor_pago
+            inquilino.valor_aluguel
           }\n- Data de vencimento: ${new Date(
             p.data_vencimento
           ).toLocaleDateString("pt-BR")}\n- Status: ${p.status}\n\n`;
@@ -92,7 +124,7 @@ app.post("/webhook", async (req, res) => {
       resposta = `❌ Erro ao verificar pendências.`;
     }
   } else if (text === "3") {
-    resposta = `📅 Sua próxima data de vencimento é 10/04/2025.`;
+    resposta = `📅 Sua data de vencimento: ${formatarData(inquilino.data_vencimento)}`;
   } else {
     resposta = `❌ Não entendi o que você quis dizer.\nDigite *menu* para ver as opções.`;
   }

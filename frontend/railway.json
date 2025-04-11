@@ -1,0 +1,10 @@
+{
+    "build": {
+      "command": "",
+      "output": "."
+    },
+    "deploy": {
+      "startCommand": "npx serve ."
+    }
+  }
+  
