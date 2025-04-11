@@ -16,22 +16,20 @@ app.get("/", (req, res) => {
 // ------------------ ROTAS GET ------------------
 
 // Rota GET - Imóveis
-app.get("/imoveis", (req, res) => {
-  const query = "SELECT * FROM imoveis";
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error("Erro ao buscar imóveis:", err);
-      return res.status(500).json({ erro: "Erro ao buscar imóveis" });
-    }
+app.get("/imoveis", async (req, res) => {
+  try {
+    const [results] = await db.query("SELECT * FROM imoveis");
     res.json(results);
-  });
+  } catch (err) {
+    console.error("Erro ao buscar imóveis:", err);
+    res.status(500).json({ erro: "Erro ao buscar imóveis" });
+  }
 });
 
 // Rota GET - Inquilinos
-
 app.get("/inquilinos", async (req, res) => {
   try {
-    const [results] = await db.pool("SELECT * FROM inquilinos");
+    const [results] = await db.query("SELECT * FROM inquilinos");
     res.json(results);
   } catch (err) {
     console.error("Erro ao buscar inquilinos:", err);
@@ -40,34 +38,35 @@ app.get("/inquilinos", async (req, res) => {
 });
 
 // Rota GET - Pagamentos
-app.get("/pagamentos", (req, res) => {
-  const query = "SELECT * FROM pagamentos";
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error("Erro ao buscar pagamentos:", err);
-      return res.status(500).json({ erro: "Erro ao buscar pagamentos" });
-    }
+app.get("/pagamentos", async (req, res) => {
+  try {
+    const [results] = await db.query("SELECT * FROM pagamentos");
     res.json(results);
-  });
+  } catch (err) {
+    console.error("Erro ao buscar pagamentos:", err);
+    res.status(500).json({ erro: "Erro ao buscar pagamentos" });
+  }
 });
 
 // ------------------ ROTAS POST ------------------
 
 // Rota POST - Adicionar imóvel
-app.post("/imoveis", (req, res) => {
+app.post("/imoveis", async (req, res) => {
   const { tipo, endereco, numero } = req.body;
-  const query = "INSERT INTO imoveis (tipo, endereco, numero) VALUES (?, ?, ?)";
-  db.query(query, [tipo, endereco, numero], (err, results) => {
-    if (err) {
-      console.error("Erro ao adicionar imóvel:", err);
-      return res.status(500).json({ erro: "Erro ao adicionar imóvel" });
-    }
+  try {
+    const [results] = await db.query(
+      "INSERT INTO imoveis (tipo, endereco, numero) VALUES (?, ?, ?)",
+      [tipo, endereco, numero]
+    );
     res.status(201).json({ id: results.insertId, tipo, endereco, numero });
-  });
+  } catch (err) {
+    console.error("Erro ao adicionar imóvel:", err);
+    res.status(500).json({ erro: "Erro ao adicionar imóvel" });
+  }
 });
 
 // Rota POST - Adicionar inquilino
-app.post("/inquilinos", (req, res) => {
+app.post("/inquilinos", async (req, res) => {
   const {
     imovel_id,
     nome,
@@ -76,30 +75,28 @@ app.post("/inquilinos", (req, res) => {
     valor_aluguel,
     data_vencimento,
   } = req.body;
-  const query =
-    "INSERT INTO inquilinos (imovel_id, nome, numero_imovel, telefone, valor_aluguel, data_vencimento) VALUES (?, ?, ?, ?, ?, ?)";
-  db.query(
-    query,
-    [imovel_id, nome, numero_imovel, telefone, valor_aluguel, data_vencimento],
-    (err, results) => {
-      if (err) {
-        console.error("Erro ao adicionar inquilino:", err);
-        return res.status(500).json({ erro: "Erro ao adicionar inquilino" });
-      }
-      res.status(201).json({
-        id: results.insertId,
-        imovel_id,
-        nome,
-        numero_imovel,
-        telefone,
-        valor_aluguel,
-        data_vencimento,
-      });
-    }
-  );
+  try {
+    const [results] = await db.query(
+      "INSERT INTO inquilinos (imovel_id, nome, numero_imovel, telefone, valor_aluguel, data_vencimento) VALUES (?, ?, ?, ?, ?, ?)",
+      [imovel_id, nome, numero_imovel, telefone, valor_aluguel, data_vencimento]
+    );
+    res.status(201).json({
+      id: results.insertId,
+      imovel_id,
+      nome,
+      numero_imovel,
+      telefone,
+      valor_aluguel,
+      data_vencimento,
+    });
+  } catch (err) {
+    console.error("Erro ao adicionar inquilino:", err);
+    res.status(500).json({ erro: "Erro ao adicionar inquilino" });
+  }
 });
 
-app.post("/pagamentos", (req, res) => {
+// Rota POST - Adicionar pagamento
+app.post("/pagamentos", async (req, res) => {
   const {
     inquilino_id,
     stripe_session_id,
@@ -108,41 +105,38 @@ app.post("/pagamentos", (req, res) => {
     valor_pago,
     status,
   } = req.body;
-
-  db.query(
-    "INSERT INTO pagamentos (inquilino_id, stripe_session_id, data_vencimento, data_pagamento, valor_pago, status) VALUES (?, ?, ?, ?, ?, ?)",
-    [
-      inquilino_id,
-      stripe_session_id,
-      data_vencimento,
-      data_pagamento,
-      valor_pago,
-      status,
-    ],
-    (err, results) => {
-      if (err) {
-        console.error("Erro ao adicionar pagamento:", err);
-        return res.status(500).json({ erro: "Erro ao adicionar pagamento" });
-      }
-      res.status(201).json({
-        id: results.insertId,
+  try {
+    const [results] = await db.query(
+      "INSERT INTO pagamentos (inquilino_id, stripe_session_id, data_vencimento, data_pagamento, valor_pago, status) VALUES (?, ?, ?, ?, ?, ?)",
+      [
         inquilino_id,
         stripe_session_id,
         data_vencimento,
         data_pagamento,
         valor_pago,
         status,
-      });
-    }
-  );
+      ]
+    );
+    res.status(201).json({
+      id: results.insertId,
+      inquilino_id,
+      stripe_session_id,
+      data_vencimento,
+      data_pagamento,
+      valor_pago,
+      status,
+    });
+  } catch (err) {
+    console.error("Erro ao adicionar pagamento:", err);
+    res.status(500).json({ erro: "Erro ao adicionar pagamento" });
+  }
 });
 
+// Rota GET - Buscar inquilino por telefone
 app.get("/getinquilino/:telefone", async (req, res) => {
   const { telefone } = req.params;
-  const query = "SELECT * FROM inquilinos WHERE telefone = ?";
-
   try {
-    const [results] = await db.query(query, [telefone]);
+    const [results] = await db.query("SELECT * FROM inquilinos WHERE telefone = ?", [telefone]);
     if (results.length > 0) {
       res.json(results[0]);
     } else {
@@ -154,19 +148,17 @@ app.get("/getinquilino/:telefone", async (req, res) => {
   }
 });
 
-//-- Rotas GET - Pagamentos por inquilino e status -- ver pendencias
+// Rota GET - Pagamentos por inquilino e status
 app.get("/pagamentos/:inquilino_id/status/:status", async (req, res) => {
   const { inquilino_id, status } = req.params;
-
   if (!inquilino_id) {
     return res.status(400).json({ erro: "inquilino_id não foi passado" });
   }
-
   try {
-    const query =
-      "SELECT * FROM pagamentos WHERE inquilino_id = ? AND status = ?";
-
-    const [results] = await db.query(query, [inquilino_id, status]);
+    const [results] = await db.query(
+      "SELECT * FROM pagamentos WHERE inquilino_id = ? AND status = ?",
+      [inquilino_id, status]
+    );
     res.json(results);
   } catch (err) {
     console.error("Erro ao buscar pagamento:", err);
@@ -174,12 +166,9 @@ app.get("/pagamentos/:inquilino_id/status/:status", async (req, res) => {
   }
 });
 
-//---------------Rotas STRIPE--------------------------------------------------//
-
 // Rota POST - Criar pagamento com Stripe
 app.post("/stripe/criar-pagamento", async (req, res) => {
   const { valor, nomeInquilino } = req.body;
-
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -196,7 +185,7 @@ app.post("/stripe/criar-pagamento", async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: "https://locapay-production-844e.up.railway.app",
+      success_url: "https://locapay-production-844e.up.railway.app/sucesso",
       cancel_url: "https://locapay-production-844e.up.railway.app/falha",
     });
 
