@@ -5,7 +5,13 @@ const stripe = require("./stripe.js");
 
 const app = express();
 
-app.use(cors());
+app.use(cors(
+  {
+    origin: "https://locapay-production-844e.up.railway.app, http://localhost:5500",
+    methods: ["GET", "POST"],
+    credentials: true,
+  }
+));
 app.use(express.json());
 
 // Rota básica
