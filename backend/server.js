@@ -112,10 +112,7 @@ app.get("/inquilinos-com-imovel", async (req, res) => {
 app.get("/todos-pagamentos", async (req, res) => {
   try {
     const [results] = await db.query(`
-      SELECT p.*, i.nome AS nome_inquilino
-      FROM pagamentos p
-      JOIN inquilinos i ON p.inquilino_id = i.id
-      ORDER BY p.data_pagamento DESC
+      SELECT * FROM pagamentos
     `);
     res.json(results);
   } catch (err) {
@@ -244,6 +241,9 @@ app.get("/pagamentos/:inquilino_id/status/:status", async (req, res) => {
     res.status(500).json({ erro: "Erro ao buscar pagamento" });
   }
 });
+
+//-----------------------Rotas Stripe-----------------------
+
 
 // Rota POST - Criar pagamento com Stripe
 app.post("/stripe/criar-pagamento", async (req, res) => {
