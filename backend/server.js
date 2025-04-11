@@ -162,33 +162,33 @@ app.get("/getinquilino/:telefone", async (req, res) => {
 
 
 //-- Rotas GET - Pagamentos por inquilino e status -- ver pendencias
-app.get("/pagamentos/:inquilino_id/status/:status", (req, res) => {
+app.get("/pagamentos/:inquilino_id/status/:status?", async (req, res) => {
   const { inquilino_id, status } = req.params;
 
-  if (!inquilino_id ) {
-    return res.status(400).json({ erro: "inquilino_id nao fo passado" });
+  if (!inquilino_id) {
+    return res.status(400).json({ erro: "inquilino_id não foi passado" });
   }
-  if (status) {
-    const query = "SELECT * FROM pagamentos WHERE inquilino_id = ? AND status = ?";
-    db.query(query, [inquilino_id, status], (err, results) => {
-      if (err) {
-        console.error("Erro ao buscar pagamento:", err);
-        return res.status(500).json({ erro: "Erro ao buscar pagamento" });
-      }
-      res.json(results);
-    });
-  } else {
-    const query = "SELECT * FROM pagamentos WHERE inquilino_id = ?";
-    db.query(query, [inquilino_id], (err, results) => {
-      if (err) {
-        console.error("Erro ao buscar pagamento:", err);
-        return res.status(500).json({ erro: "Erro ao buscar pagamento" });
-      }
-      res.json(results);
-    });
 
+  try {
+    let query;
+    let values;
+
+    if (status) {
+      query = "SELECT * FROM pagamentos WHERE inquilino_id = ? AND status = ?";
+      values = [inquilino_id, status];
+    } else {
+      query = "SELECT * FROM pagamentos WHERE inquilino_id = ?";
+      values = [inquilino_id];
+    }
+
+    const [results] = await pool.query(query, values);
+    res.json(results);
+  } catch (err) {
+    console.error("Erro ao buscar pagamento:", err);
+    res.status(500).json({ erro: "Erro ao buscar pagamento" });
   }
-})
+});
+
 
 //---------------Rotas STRIPE--------------------------------------------------//
 
