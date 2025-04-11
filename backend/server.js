@@ -181,18 +181,18 @@ app.post("/pagamentos", async (req, res) => {
     stripe_session_id,
     data_vencimento,
     data_pagamento,
-    valor_pago,
+    valor,
     status,
   } = req.body;
   try {
     const [results] = await db.query(
-      "INSERT INTO pagamentos (inquilino_id, stripe_session_id, data_vencimento, data_pagamento, valor_pago, status) VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO pagamentos (inquilino_id, stripe_session_id, data_vencimento, data_pagamento, valor, status) VALUES (?, ?, ?, ?, ?, ?)",
       [
         inquilino_id,
         stripe_session_id,
         data_vencimento,
         data_pagamento,
-        valor_pago,
+        valor,
         status,
       ]
     );
@@ -202,7 +202,7 @@ app.post("/pagamentos", async (req, res) => {
       stripe_session_id,
       data_vencimento,
       data_pagamento,
-      valor_pago,
+      valor,
       status,
     });
   } catch (err) {
