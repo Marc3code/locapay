@@ -48,6 +48,77 @@ app.get("/pagamentos", async (req, res) => {
   }
 });
 
+// Rota GET - Último pagamento por inquilino
+app.get("/ultimopagamento/:inquilino_id", async (req, res) => {
+  const { inquilino_id } = req.params;
+  try {
+    const [results] = await db.query(
+      `SELECT * FROM pagamentos
+       WHERE inquilino_id = ?
+       AND status = 'pago'
+       ORDER BY data_pagamento DESC
+       LIMIT 1`,
+      [inquilino_id]
+    );
+    res.json(results[0] || null);
+  } catch (err) {
+    console.error("Erro ao buscar último pagamento:", err);
+    res.status(500).json({ erro: "Erro ao buscar último pagamento" });
+  }
+});
+
+// Rota GET - Atrasos por inquilino
+app.get("/atrasos/:inquilino_id", async (req, res) => {
+  const { inquilino_id } = req.params;
+  try {
+    const [results] = await db.query(
+      `SELECT COUNT(*) AS total_atrasos
+       FROM pagamentos
+       WHERE inquilino_id = ? AND status = 'pendente'`,
+      [inquilino_id]
+    );
+    res.json(results[0]);
+  } catch (err) {
+    console.error("Erro ao buscar atrasos:", err);
+    res.status(500).json({ erro: "Erro ao buscar atrasos" });
+  }
+});
+
+
+
+// Rota GET - Inquilinos com Imóvel
+app.get("/inquilinos-com-imovel", async (req, res) => {
+  try {
+    const [results] = await db.query(`
+      SELECT i.id, i.nome, i.numero_imovel, i.telefone, i.valor_aluguel, i.data_vencimento,
+             im.tipo AS tipo_imovel, im.endereco, im.numero
+      FROM inquilinos i
+      JOIN imoveis im ON i.imovel_id = im.id
+    `);
+    res.json(results);
+  } catch (err) {
+    console.error("Erro ao buscar inquilinos com imóvel:", err);
+    res.status(500).json({ erro: "Erro ao buscar inquilinos com imóvel" });
+  }
+});
+
+// Rota GET - todos os Pagamentos de um inquilino
+app.get("/todos-pagamentos", async (req, res) => {
+  try {
+    const [results] = await db.query(`
+      SELECT p.*, i.nome AS nome_inquilino
+      FROM pagamentos p
+      JOIN inquilinos i ON p.inquilino_id = i.id
+      ORDER BY p.data_pagamento DESC
+    `);
+    res.json(results);
+  } catch (err) {
+    console.error("Erro ao buscar pagamentos:", err);
+    res.status(500).json({ erro: "Erro ao buscar pagamentos" });
+  }
+});
+
+
 // ------------------ ROTAS POST ------------------
 
 // Rota POST - Adicionar imóvel
@@ -64,6 +135,8 @@ app.post("/imoveis", async (req, res) => {
     res.status(500).json({ erro: "Erro ao adicionar imóvel" });
   }
 });
+
+
 
 // Rota POST - Adicionar inquilino
 app.post("/inquilinos", async (req, res) => {
