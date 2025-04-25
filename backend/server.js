@@ -95,12 +95,12 @@ app.post("/imoveis", async (req, res) => {
       "INSERT INTO imoveis (tipo, endereco, numero, complemento) VALUES (?, ?, ?, ?)",
       [tipo, endereco, numero, complemento]
     );
-    res.status(201).json({ 
-      id: results.insertId, 
-      tipo, 
-      endereco, 
+    res.status(201).json({
+      id: results.insertId,
+      tipo,
+      endereco,
       numero,
-      complemento 
+      complemento,
     });
   } catch (err) {
     console.error("Erro ao adicionar imóvel:", err);
@@ -108,27 +108,29 @@ app.post("/imoveis", async (req, res) => {
   }
 });
 
-// Rota POST - Adicionar inquilino (atualizada com novos campos)
+// Rota POST - Adicionar inquilino
 app.post("/inquilinos", async (req, res) => {
-  const {
-    nome,
-    telefone,
-    cpfCnpj,
-    id_asaas
-  } = req.body;
+  const ClienteData = ({ nome, telefone, cpfCnpj } = req.body);
 
   try {
     const [results] = await db.query(
-      "INSERT INTO inquilinos (nome, telefone, cpfCnpj, id_asaas) VALUES (?, ?, ?, ?)",
-      [nome, telefone, cpfCnpj, id_asaas]
+      "INSERT INTO inquilinos (nome, telefone, cpfCnpj, id_asaas) VALUES (?, ?, ?)",
+      [nome, telefone, cpfCnpj]
     );
+
+    const id_asaas = await asaas.criarClienteAsaas(ClienteData);
+
+    await db.query("UPDATE inquilinos SET id_asaas = ? WHERE id = ?", [
+      id_asaas,
+      results.insertId,
+    ]);
 
     res.status(201).json({
       id: results.insertId,
       nome,
       telefone,
       cpfCnpj,
-      id_asaas
+      id_asaas,
     });
   } catch (err) {
     console.error("Erro ao adicionar inquilino:", err);
@@ -145,7 +147,7 @@ app.post("/inquilinos-imoveis", async (req, res) => {
     data_vencimento,
     data_inicio,
     data_fim,
-    status
+    status,
   } = req.body;
 
   try {
@@ -153,7 +155,15 @@ app.post("/inquilinos-imoveis", async (req, res) => {
       `INSERT INTO inquilinos_imoveis 
       (inquilino_id, imovel_id, valor_aluguel, data_vencimento, data_inicio, data_fim, status) 
       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [inquilino_id, imovel_id, valor_aluguel, data_vencimento, data_inicio || null, data_fim || null, status || 'ativo']
+      [
+        inquilino_id,
+        imovel_id,
+        valor_aluguel,
+        data_vencimento,
+        data_inicio || null,
+        data_fim || null,
+        status || "ativo",
+      ]
     );
 
     res.status(201).json({
@@ -164,7 +174,7 @@ app.post("/inquilinos-imoveis", async (req, res) => {
       data_vencimento,
       data_inicio,
       data_fim,
-      status
+      status,
     });
   } catch (err) {
     console.error("Erro ao vincular inquilino a imóvel:", err);
@@ -180,7 +190,7 @@ app.post("/pagamentos", async (req, res) => {
     due_date,
     payment_date,
     amount,
-    status
+    status,
   } = req.body;
 
   try {
@@ -188,7 +198,14 @@ app.post("/pagamentos", async (req, res) => {
       `INSERT INTO pagamentos 
       (inquilino_id, asaas_payment_id, due_date, payment_date, amount, status) 
       VALUES (?, ?, ?, ?, ?, ?)`,
-      [inquilino_id, asaas_payment_id, due_date, payment_date || null, amount, status || 'pendente']
+      [
+        inquilino_id,
+        asaas_payment_id,
+        due_date,
+        payment_date || null,
+        amount,
+        status || "pendente",
+      ]
     );
 
     res.status(201).json({
@@ -198,7 +215,7 @@ app.post("/pagamentos", async (req, res) => {
       due_date,
       payment_date,
       amount,
-      status
+      status,
     });
   } catch (err) {
     console.error("Erro ao registrar pagamento:", err);

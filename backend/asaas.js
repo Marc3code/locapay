@@ -39,18 +39,7 @@ const criarClienteAsaas = async (clienteData) => {
         'access_token': process.env.ASAAS_SECRET_KEY, // sua chave de API do Asaas
       },
     });
-
-    console.log('Cliente criado com sucesso!');
-    await fetch('https://locapay-production.up.railway.app/adiciona_id_asaas', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        asaas_id: response.data.customer,
-      }),
-    })
-    return response.data;
+    return response.data.id;
   } catch (err) {
     console.error('Erro ao criar cliente:', err.response?.data || err.message);
     throw new Error(err.response?.data?.message || 'Erro ao criar cliente');
