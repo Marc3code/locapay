@@ -1,7 +1,6 @@
 const express = require("express");
 const db = require("./database.js");
 const cors = require("cors");
-const asaas = require("./asaas.js");
 
 const app = express();
 
@@ -43,65 +42,30 @@ app.get("/inquilinos", async (req, res) => {
   }
 });
 
-// Rota GET - Pagamentos
-app.get("/pagamentos/:id", async (req, res) => {
-  const { inquilino_id } = req.params;
-
-  try {
-    const [results] = await db.query("SELECT * FROM pagamentos where id = ?", [
-      inquilino_id,
-    ]);
-    res.json(results);
-  } catch (err) {
-    console.error("Erro ao buscar pagamentos:", err);
-    res.status(500).json({ erro: "Erro ao buscar pagamentos" });
-  }
-});
-
-// Rota GET - Último pagamento por inquilino
-app.get("/ultimopagamento/:inquilino_id", async (req, res) => {
-  const { inquilino_id } = req.params;
-  try {
-    const [results] = await db.query(
-      `SELECT * FROM pagamentos
-       WHERE inquilino_id = ?
-       AND status = 'pago'
-       ORDER BY data_pagamento DESC
-       LIMIT 1`,
-      [inquilino_id]
-    );
-    res.json(results[0] || null);
-  } catch (err) {
-    console.error("Erro ao buscar último pagamento:", err);
-    res.status(500).json({ erro: "Erro ao buscar último pagamento" });
-  }
-});
-
-// Rota GET - Atrasos por inquilino
-app.get("/atrasos/:inquilino_id", async (req, res) => {
-  const { inquilino_id } = req.params;
-  try {
-    const [results] = await db.query(
-      `SELECT COUNT(*) AS total_atrasos
-       FROM pagamentos
-       WHERE inquilino_id = ? AND status = 'pendente'`,
-      [inquilino_id]
-    );
-    res.json(results[0]);
-  } catch (err) {
-    console.error("Erro ao buscar atrasos:", err);
-    res.status(500).json({ erro: "Erro ao buscar atrasos" });
-  }
-});
-
-// Rota GET - Inquilinos com Imóvel
+// Rota GET - Inquilinos com Imóvel (atualizada para nova estrutura)
 app.get("/inquilinos-com-imovel", async (req, res) => {
   try {
     const [results] = await db.query(`
-      SELECT i.id, i.nome, i.numero_imovel, i.telefone, i.valor_aluguel, i.data_vencimento,
-             im.tipo AS tipo_imovel, im.endereco, im.numero
+      SELECT 
+        i.id AS inquilino_id, 
+        i.nome, 
+        i.telefone, 
+        i.cpfCnpj,
+        i.id_asaas,
+        ii.id AS relacao_id,
+        ii.valor_aluguel, 
+        ii.data_vencimento,
+        ii.data_inicio,
+        ii.data_fim,
+        ii.status,
+        im.id AS imovel_id,
+        im.tipo AS tipo_imovel, 
+        im.endereco, 
+        im.numero,
+        im.complemento
       FROM inquilinos i
-      JOIN imoveis im ON i.imovel_id = im.id
+      JOIN inquilinos_imoveis ii ON i.id = ii.inquilino_id
+      JOIN imoveis im ON ii.imovel_id = im.id
     `);
     res.json(results);
   } catch (err) {
@@ -110,12 +74,10 @@ app.get("/inquilinos-com-imovel", async (req, res) => {
   }
 });
 
-// Rota GET - todos os Pagamentos
-app.get("/todos-pagamentos", async (req, res) => {
+// Rota GET - Pagamentos
+app.get("/pagamentos", async (req, res) => {
   try {
-    const [results] = await db.query(`
-      SELECT * FROM pagamentos
-    `);
+    const [results] = await db.query("SELECT * FROM pagamentos");
     res.json(results);
   } catch (err) {
     console.error("Erro ao buscar pagamentos:", err);
@@ -125,54 +87,88 @@ app.get("/todos-pagamentos", async (req, res) => {
 
 // ------------------ ROTAS POST ------------------
 
-// Rota POST - Adicionar imóvel
+// Rota POST - Adicionar imóvel (atualizada com complemento)
 app.post("/imoveis", async (req, res) => {
-  const { tipo, endereco, numero } = req.body;
+  const { tipo, endereco, numero, complemento } = req.body;
   try {
     const [results] = await db.query(
-      "INSERT INTO imoveis (tipo, endereco, numero) VALUES (?, ?, ?)",
-      [tipo, endereco, numero]
+      "INSERT INTO imoveis (tipo, endereco, numero, complemento) VALUES (?, ?, ?, ?)",
+      [tipo, endereco, numero, complemento]
     );
-    res.status(201).json({ id: results.insertId, tipo, endereco, numero });
+    res.status(201).json({ 
+      id: results.insertId, 
+      tipo, 
+      endereco, 
+      numero,
+      complemento 
+    });
   } catch (err) {
     console.error("Erro ao adicionar imóvel:", err);
     res.status(500).json({ erro: "Erro ao adicionar imóvel" });
   }
 });
 
-// Rota POST - Adicionar inquilino
+// Rota POST - Adicionar inquilino (atualizada com novos campos)
 app.post("/inquilinos", async (req, res) => {
-
-  //formato do telefone a ser enviado e salvo no meu bd +5584996132907
   const {
-    imovel_id,
     nome,
-    numero_imovel,
     telefone,
-    valor_aluguel,
-    data_vencimento,
     cpfCnpj,
+    id_asaas
   } = req.body;
+
   try {
     const [results] = await db.query(
-      "INSERT INTO inquilinos (imovel_id, nome, numero_imovel, telefone, valor_aluguel, data_vencimento) VALUES (?, ?, ?, ?, ?, ?)",
-      [imovel_id, nome, numero_imovel, telefone, valor_aluguel, data_vencimento]
+      "INSERT INTO inquilinos (nome, telefone, cpfCnpj, id_asaas) VALUES (?, ?, ?, ?)",
+      [nome, telefone, cpfCnpj, id_asaas]
     );
+
     res.status(201).json({
-      "cpfCnpj": cpfCnpj,
+      id: results.insertId,
+      nome,
+      telefone,
+      cpfCnpj,
+      id_asaas
     });
-
-    const clienteData = {
-      name: nome,
-      cpfCnpj: cpfCnpj, // CPF ou CNPJ do cliente
-      email: "testeEmail@gmail.com",
-      phone: telefone,
-    };
-    asaas.criarClienteAsaas(clienteData);
-
   } catch (err) {
     console.error("Erro ao adicionar inquilino:", err);
     res.status(500).json({ erro: "Erro ao adicionar inquilino" });
+  }
+});
+
+// Rota POST - Vincular inquilino a imóvel
+app.post("/inquilinos-imoveis", async (req, res) => {
+  const {
+    inquilino_id,
+    imovel_id,
+    valor_aluguel,
+    data_vencimento,
+    data_inicio,
+    data_fim,
+    status
+  } = req.body;
+
+  try {
+    const [results] = await db.query(
+      `INSERT INTO inquilinos_imoveis 
+      (inquilino_id, imovel_id, valor_aluguel, data_vencimento, data_inicio, data_fim, status) 
+      VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [inquilino_id, imovel_id, valor_aluguel, data_vencimento, data_inicio || null, data_fim || null, status || 'ativo']
+    );
+
+    res.status(201).json({
+      id: results.insertId,
+      inquilino_id,
+      imovel_id,
+      valor_aluguel,
+      data_vencimento,
+      data_inicio,
+      data_fim,
+      status
+    });
+  } catch (err) {
+    console.error("Erro ao vincular inquilino a imóvel:", err);
+    res.status(500).json({ erro: "Erro ao vincular inquilino a imóvel" });
   }
 });
 
@@ -180,40 +176,37 @@ app.post("/inquilinos", async (req, res) => {
 app.post("/pagamentos", async (req, res) => {
   const {
     inquilino_id,
-    stripe_session_id,
-    data_vencimento,
-    data_pagamento,
-    valor,
-    status,
+    asaas_payment_id,
+    due_date,
+    payment_date,
+    amount,
+    status
   } = req.body;
+
   try {
     const [results] = await db.query(
-      "INSERT INTO pagamentos (inquilino_id, stripe_session_id, data_vencimento, data_pagamento, valor, status) VALUES (?, ?, ?, ?, ?, ?)",
-      [
-        inquilino_id,
-        stripe_session_id,
-        data_vencimento,
-        data_pagamento,
-        valor,
-        status,
-      ]
+      `INSERT INTO pagamentos 
+      (inquilino_id, asaas_payment_id, due_date, payment_date, amount, status) 
+      VALUES (?, ?, ?, ?, ?, ?)`,
+      [inquilino_id, asaas_payment_id, due_date, payment_date || null, amount, status || 'pendente']
     );
+
     res.status(201).json({
       id: results.insertId,
       inquilino_id,
-      stripe_session_id,
-      data_vencimento,
-      data_pagamento,
-      valor,
-      status,
+      asaas_payment_id,
+      due_date,
+      payment_date,
+      amount,
+      status
     });
   } catch (err) {
-    console.error("Erro ao adicionar pagamento:", err);
-    res.status(500).json({ erro: "Erro ao adicionar pagamento" });
+    console.error("Erro ao registrar pagamento:", err);
+    res.status(500).json({ erro: "Erro ao registrar pagamento" });
   }
 });
 
-// Rota GET - Buscar inquilino por telefone
+// Rota GET - Buscar inquilino por telefone (atualizada)
 app.get("/getinquilino/:telefone", async (req, res) => {
   const { telefone } = req.params;
   try {
@@ -232,37 +225,8 @@ app.get("/getinquilino/:telefone", async (req, res) => {
   }
 });
 
-// Rota GET - Pagamentos por inquilino e status
-app.get("/pagamentos/:inquilino_id/status/:status", async (req, res) => {
-  const { inquilino_id, status } = req.params;
-  if (!inquilino_id) {
-    return res.status(400).json({ erro: "inquilino_id não foi passado" });
-  }
-  try {
-    const [results] = await db.query(
-      "SELECT * FROM pagamentos WHERE inquilino_id = ? AND status = ?",
-      [inquilino_id, status]
-    );
-    res.json(results);
-  } catch (err) {
-    console.error("Erro ao buscar pagamento:", err);
-    res.status(500).json({ erro: "Erro ao buscar pagamento" });
-  }
-});
-
-//-----------------------Rotas Pagamento e Cobranças-----------------------
-app.post("/gerarpagamento", async (req, res) => {
-  const { customerId, value, dueDate } = req.body; // Recebe os dados do cliente
-  try {
-    const response = await asaas.gerarPagamentoPix(customerId, value, dueDate); // Chama a função para gerar o pagamento
-    res.json(response); // Retorna a resposta da API do Asaas
-  } catch (err) {
-    console.error("Erro ao gerar pagamento:", err);
-    res.status(500).json({ erro: "Erro ao gerar pagamento" });
-  }
-})
-
-
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
+// Inicializa o servidor
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });

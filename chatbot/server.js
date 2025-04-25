@@ -93,7 +93,7 @@ app.post("/webhook", async (req, res) => {
   if (text === "menu") {
     resposta = `Olá, ${inquilino.nome}! 👋 Como posso te ajudar?\n\nEscolha uma opção:\n1️⃣ Pagar aluguel\n2️⃣ Verificar pagamentos pendentes\n3️⃣ Ver data de vencimento`;
   } else if (text === "1") {
-    const link_pagamento = await fetch(`http://localhost:3000/gerarpagamento`, {
+    const link_pagamento = await fetch(`https://locapay-production.up.railway.app/gerarpagamento`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -117,7 +117,8 @@ app.post("/webhook", async (req, res) => {
         console.error("Erro ao gerar link de pagamento:", err);
         return null;
       });
-    resposta = `💳 Link para pagamento do aluguel:\n ${link_pagamento}`;
+      console.log("link_pagamento:", link_pagamento);
+    resposta = `💳 Link para pagamento do aluguel:\n `;
   } else if (text === "2") {
     try {
       console.log("Buscando pendências para o inquilino:", inquilino.id);
