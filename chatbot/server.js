@@ -90,10 +90,34 @@ app.post("/webhook", async (req, res) => {
     return `${dia}/${mes}/${ano}`;
   }
 
-  if (text || text === "menu") {
-    resposta = `Olá! 👋 Como posso te ajudar?\n\nEscolha uma opção:\n1️⃣ Pagar aluguel\n2️⃣ Verificar pagamentos pendentes\n3️⃣ Ver data de vencimento`;
+  if (text === "menu") {
+    resposta = `Olá, ${inquilino.nome}! 👋 Como posso te ajudar?\n\nEscolha uma opção:\n1️⃣ Pagar aluguel\n2️⃣ Verificar pagamentos pendentes\n3️⃣ Ver data de vencimento`;
   } else if (text === "1") {
-    resposta = `💳 Link para pagamento do aluguel:\nhttps://locapay-production.up.railway.app/stripe/criar-pagamento`;
+    const link_pagamento = await fetch(`http://localhost:3000/gerarpagamento`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        customerId: inquilino.id,
+        value: inquilino.valor_aluguel,
+        dueDate: inquilino.data_vencimento,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data) {
+          return data;
+        } else {
+          console.error("Erro ao gerar link de pagamento:", data);
+          return null;
+        }
+      })
+      .catch((err) => {
+        console.error("Erro ao gerar link de pagamento:", err);
+        return null;
+      });
+    resposta = `💳 Link para pagamento do aluguel:\n ${link_pagamento}`;
   } else if (text === "2") {
     try {
       console.log("Buscando pendências para o inquilino:", inquilino.id);

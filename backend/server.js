@@ -1,17 +1,17 @@
 const express = require("express");
 const db = require("./database.js");
 const cors = require("cors");
-const stripe = require("./stripe.js");
+const asaas = require("./asaas.js");
 
 const app = express();
 
-app.use(cors(
-  {
+app.use(
+  cors({
     origin: "http://127.0.0.1:5500",
     methods: ["GET", "POST"],
     credentials: true,
-  }
-));
+  })
+);
 app.use(express.json());
 
 // Rota básica
@@ -44,9 +44,13 @@ app.get("/inquilinos", async (req, res) => {
 });
 
 // Rota GET - Pagamentos
-app.get("/pagamentos", async (req, res) => {
+app.get("/pagamentos/:id", async (req, res) => {
+  const { inquilino_id } = req.params;
+
   try {
-    const [results] = await db.query("SELECT * FROM pagamentos");
+    const [results] = await db.query("SELECT * FROM pagamentos where id = ?", [
+      inquilino_id,
+    ]);
     res.json(results);
   } catch (err) {
     console.error("Erro ao buscar pagamentos:", err);
@@ -90,8 +94,6 @@ app.get("/atrasos/:inquilino_id", async (req, res) => {
   }
 });
 
-
-
 // Rota GET - Inquilinos com Imóvel
 app.get("/inquilinos-com-imovel", async (req, res) => {
   try {
@@ -108,7 +110,7 @@ app.get("/inquilinos-com-imovel", async (req, res) => {
   }
 });
 
-// Rota GET - todos os Pagamentos de um inquilino
+// Rota GET - todos os Pagamentos
 app.get("/todos-pagamentos", async (req, res) => {
   try {
     const [results] = await db.query(`
@@ -120,7 +122,6 @@ app.get("/todos-pagamentos", async (req, res) => {
     res.status(500).json({ erro: "Erro ao buscar pagamentos" });
   }
 });
-
 
 // ------------------ ROTAS POST ------------------
 
@@ -139,10 +140,10 @@ app.post("/imoveis", async (req, res) => {
   }
 });
 
-
-
 // Rota POST - Adicionar inquilino
 app.post("/inquilinos", async (req, res) => {
+
+  //formato do telefone a ser enviado e salvo no meu bd +5584996132907
   const {
     imovel_id,
     nome,
@@ -150,6 +151,7 @@ app.post("/inquilinos", async (req, res) => {
     telefone,
     valor_aluguel,
     data_vencimento,
+    cpfCnpj,
   } = req.body;
   try {
     const [results] = await db.query(
@@ -157,14 +159,17 @@ app.post("/inquilinos", async (req, res) => {
       [imovel_id, nome, numero_imovel, telefone, valor_aluguel, data_vencimento]
     );
     res.status(201).json({
-      id: results.insertId,
-      imovel_id,
-      nome,
-      numero_imovel,
-      telefone,
-      valor_aluguel,
-      data_vencimento,
+      "cpfCnpj": cpfCnpj,
     });
+
+    const clienteData = {
+      name: nome,
+      cpfCnpj: cpfCnpj, // CPF ou CNPJ do cliente
+      email: "testeEmail@gmail.com",
+      phone: telefone,
+    };
+    asaas.criarClienteAsaas(clienteData);
+
   } catch (err) {
     console.error("Erro ao adicionar inquilino:", err);
     res.status(500).json({ erro: "Erro ao adicionar inquilino" });
@@ -212,7 +217,10 @@ app.post("/pagamentos", async (req, res) => {
 app.get("/getinquilino/:telefone", async (req, res) => {
   const { telefone } = req.params;
   try {
-    const [results] = await db.query("SELECT * FROM inquilinos WHERE telefone = ?", [telefone]);
+    const [results] = await db.query(
+      "SELECT * FROM inquilinos WHERE telefone = ?",
+      [telefone]
+    );
     if (results.length > 0) {
       res.json(results[0]);
     } else {
@@ -242,38 +250,18 @@ app.get("/pagamentos/:inquilino_id/status/:status", async (req, res) => {
   }
 });
 
-//-----------------------Rotas Stripe-----------------------
-
-
-// Rota POST - Criar pagamento com Stripe
-app.post("/stripe/criar-pagamento", async (req, res) => {
-  const { valor, nomeInquilino } = req.body;
+//-----------------------Rotas Pagamento e Cobranças-----------------------
+app.post("/gerarpagamento", async (req, res) => {
+  const { customerId, value, dueDate } = req.body; // Recebe os dados do cliente
   try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "brl",
-            product_data: {
-              name: `Aluguel - ${nomeInquilino}`,
-            },
-            unit_amount: Math.round(valor * 100),
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: "https://locapay-production-844e.up.railway.app/sucesso",
-      cancel_url: "https://locapay-production-844e.up.railway.app/falha",
-    });
-
-    res.json({ url: session.url, sessionId: session.id });
+    const response = await asaas.gerarPagamentoPix(customerId, value, dueDate); // Chama a função para gerar o pagamento
+    res.json(response); // Retorna a resposta da API do Asaas
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ erro: "Erro ao criar sessão de pagamento" });
+    console.error("Erro ao gerar pagamento:", err);
+    res.status(500).json({ erro: "Erro ao gerar pagamento" });
   }
-});
+})
+
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");

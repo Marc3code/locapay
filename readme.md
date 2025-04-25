@@ -1,10 +1,10 @@
 
 
--fazer pagina de confirmação de pagamento
--fazer pagina de erro de pagamento
--fazer dashboard para o locador
--testar com conta real na stripe 
+-Utilizando asaas para os pagamentos
+-adicionar cpf no cadastro do inquilino para poder pegar e enviar pra criar o cliente no asaas
+-Ver o que precisa pra reestruturar o bd pra utilizar o asaas{
+    mudar a coluna stripe session id pra conter o customer_id da asaas
+}
 
 *CHATBOT
--criar conta no wpp bussiness pra testar o chatbot
--fazer interface via chatbot para o inquilino
+
