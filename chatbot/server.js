@@ -33,11 +33,11 @@ app.post("/webhook", async (req, res) => {
   const ddd = numeroFormatado.slice(3, 5); // Ex: 84
   let numero = numeroFormatado.slice(5); // Ex: 996132907 ou 96132907
 
-  // Adiciona o '9' se o número tiver só 8 dígitos (ou seja, sem o nono dígito)
+  // Adiciona o '9' se o número tiver só 8 dígitos
   if (numero.length === 8) {
     numero = "9" + numero;
   } else if (numero.length === 9 && numero[0] !== "9") {
-    // Segurança extra: ainda verifica se o 9 está na frente
+    // verifica se o 9 está na frente
     numero = "9" + numero.slice(1);
   }
 
@@ -63,8 +63,6 @@ app.post("/webhook", async (req, res) => {
         console.error("Erro ao buscar inquilino:", err);
         return null;
       });
-
-    console.log("response:", response);
     inquilino = response;
     console.log("inquilino:", inquilino);
   } catch (error) {
@@ -84,72 +82,22 @@ app.post("/webhook", async (req, res) => {
 
   function formatarData(date) {
     const data = new Date(date);
-    const dia = String(data.getDate()).padStart(2, '0');
-    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, "0");
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
     const ano = data.getFullYear();
     return `${dia}/${mes}/${ano}`;
   }
 
-  if (text === "menu") {
+  if (text === "menu", "oi", "olá", "boa tarde", "bom dia", "boa noite") {
     resposta = `Olá, ${inquilino.nome}! 👋 Como posso te ajudar?\n\nEscolha uma opção:\n1️⃣ Pagar aluguel\n2️⃣ Verificar pagamentos pendentes\n3️⃣ Ver data de vencimento`;
   } else if (text === "1") {
-    const link_pagamento = await fetch(`https://locapay-production.up.railway.app/gerarpagamento`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        customerId: inquilino.id,
-        value: inquilino.valor_aluguel,
-        dueDate: inquilino.data_vencimento,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data) {
-          return data;
-        } else {
-          console.error("Erro ao gerar link de pagamento:", data);
-          return null;
-        }
-      })
-      .catch((err) => {
-        console.error("Erro ao gerar link de pagamento:", err);
-        return null;
-      });
-      console.log("link_pagamento:", link_pagamento);
     resposta = `💳 Link para pagamento do aluguel:\n `;
   } else if (text === "2") {
-    try {
-      console.log("Buscando pendências para o inquilino:", inquilino.id);
-
-      const resp = await fetch(
-        `https://locapay-production.up.railway.app/pagamentos/${inquilino.id}/status/pendente`
-      );
-
-      console.log("Status da resposta:", resp.status);
-
-      const pendencia = await resp.json();
-      console.log("Resposta JSON recebida:", pendencia);
-
-      if (Array.isArray(pendencia) && pendencia.length > 0) {
-        resposta = `Você possui ${pendencia.length} pendências de pagamento.\n\n`;
-        pendencia.forEach((p) => {
-          resposta += `- Valor: R$ ${
-            inquilino.valor_aluguel
-          }\n- Data de vencimento: ${new Date(
-            p.data_vencimento
-          ).toLocaleDateString("pt-BR")}\n- Status: ${p.status}\n\n`;
-        });
-      } else {
-        resposta = `Você não possui pendências de pagamento.`;
-      }
-    } catch (error) {
-      console.error("Erro ao buscar pendências:", error);
-      resposta = `❌ Erro ao verificar pendências.`;
-    }
+    resposta = `🔍 Verificando pendências...`;
   } else if (text === "3") {
-    resposta = `📅 Sua data de vencimento: ${formatarData(inquilino.data_vencimento)}`;
+    resposta = `📅 Sua data de vencimento: ${formatarData(
+      inquilino.data_vencimento
+    )}`;
   } else {
     resposta = `❌ Não entendi o que você quis dizer.\nDigite *menu* para ver as opções.`;
   }

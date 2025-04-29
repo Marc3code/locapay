@@ -1,6 +1,10 @@
 const express = require("express");
 const db = require("./database.js");
 const cors = require("cors");
+const asaas = require("./asaas.js");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 const app = express();
 
@@ -42,7 +46,7 @@ app.get("/inquilinos", async (req, res) => {
   }
 });
 
-// Rota GET - Inquilinos com Imóvel (atualizada para nova estrutura)
+// Rota GET - Inquilinos com Imóvel
 app.get("/inquilinos-com-imovel", async (req, res) => {
   try {
     const [results] = await db.query(`
@@ -110,12 +114,12 @@ app.post("/imoveis", async (req, res) => {
 
 // Rota POST - Adicionar inquilino
 app.post("/inquilinos", async (req, res) => {
-  const ClienteData = ({ nome, telefone, cpfCnpj } = req.body);
+  const ClienteData = ({ name, phone, cpfCnpj } = req.body);
 
   try {
     const [results] = await db.query(
-      "INSERT INTO inquilinos (nome, telefone, cpfCnpj, id_asaas) VALUES (?, ?, ?)",
-      [nome, telefone, cpfCnpj]
+      "INSERT INTO inquilinos (nome, telefone, cpfCnpj) VALUES (?, ?, ?)",
+      [name, phone, cpfCnpj]
     );
 
     const id_asaas = await asaas.criarClienteAsaas(ClienteData);
@@ -127,8 +131,8 @@ app.post("/inquilinos", async (req, res) => {
 
     res.status(201).json({
       id: results.insertId,
-      nome,
-      telefone,
+      name,
+      phone,
       cpfCnpj,
       id_asaas,
     });
@@ -182,44 +186,48 @@ app.post("/inquilinos-imoveis", async (req, res) => {
   }
 });
 
-// Rota POST - Adicionar pagamento
+//Rota POST - Criar cobrança
 app.post("/pagamentos", async (req, res) => {
-  const {
-    inquilino_id,
-    asaas_payment_id,
-    due_date,
-    payment_date,
-    amount,
-    status,
-  } = req.body;
+  const { id_asaas, valor, data_vencimento, inquilino_id } = req.body;
+
+  let pagamento = null; // Inicializa a variável pagamento como null
 
   try {
-    const [results] = await db.query(
-      `INSERT INTO pagamentos 
-      (inquilino_id, asaas_payment_id, due_date, payment_date, amount, status) 
-      VALUES (?, ?, ?, ?, ?, ?)`,
-      [
-        inquilino_id,
-        asaas_payment_id,
-        due_date,
-        payment_date || null,
-        amount,
-        status || "pendente",
-      ]
-    );
+    pagamento = await asaas.gerarPagamentoPix(id_asaas, valor, data_vencimento);
+    res.status(201).json(pagamento);
+  } catch (err) {
+    console.error("Erro ao criar cobrança:", err);
+    res.status(500).json({ erro: "Erro ao criar cobrança" });
+  }
 
-    res.status(201).json({
-      id: results.insertId,
-      inquilino_id,
-      asaas_payment_id,
-      due_date,
-      payment_date,
-      amount,
-      status,
+  if (!pagamento) {
+    return res.status(500).json({ erro: "Erro ao criar cobrança" });
+  }
+
+  try {
+    const query =
+      "INSERT INTO pagamentos (inquilino_id, asaas_payment_id, due_date, payment_date, amount, link_pagamento) VALUES (?, ?, ?, ?, ?, ?)";
+
+    const values = [inquilino_id, pagamento.id, data_vencimento, null, valor, pagamento.invoiceUrl];
+
+    const [results] = await db.query(query, values, (err, results) => {
+      if (err) {
+        console.error("Erro ao registrar pagamento:", err);
+        return res.status(500).json({ erro: "Erro ao registrar pagamento" });
+      }
+      res.status(201).json({
+        id: results.insertId,
+        inquilino_id,
+        asaas_payment_id: pagamento.id,
+        due_date: data_vencimento,
+        payment_date: null,
+        amount: valor,
+        link_pagamento: pagamento.invoiceUrl,
+      });
     });
   } catch (err) {
-    console.error("Erro ao registrar pagamento:", err);
-    res.status(500).json({ erro: "Erro ao registrar pagamento" });
+    console.error("Erro ao registrar pagamento no BD:", err);
+    res.status(500).json({ erro: "Erro ao registrar pagamento no BD" });
   }
 });
 
@@ -243,7 +251,7 @@ app.get("/getinquilino/:telefone", async (req, res) => {
 });
 
 // Inicializa o servidor
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

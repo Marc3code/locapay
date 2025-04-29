@@ -17,7 +17,7 @@ const gerarPagamentoPix = async (customerId, value, dueDate) => { //trocar os pa
     }, {
       headers: {
         'Content-Type': 'application/json',
-        'access_token': process.env.ASAAS_SECRET_KEY, // sua chave de API do Asaas
+        'access_token': process.env.ASAAS_SECRET_KEY, 
       },
     });
 
@@ -30,13 +30,13 @@ const gerarPagamentoPix = async (customerId, value, dueDate) => { //trocar os pa
   }
 };
 
-// Função para criação de um cliente no Asaas, caso seja necessário
+// Função para criação de um cliente no Asaas
 const criarClienteAsaas = async (clienteData) => {
   try {
     const response = await axios.post(`${BASE_URL}/customers`, clienteData, {
       headers: {
         'Content-Type': 'application/json',
-        'access_token': process.env.ASAAS_SECRET_KEY, // sua chave de API do Asaas
+        'access_token': process.env.ASAAS_SECRET_KEY, 
       },
     });
     return response.data.id;

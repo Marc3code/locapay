@@ -1,5 +1,5 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const API_BASE_URL = "https://locapay-production.up.railway.app";
+/*document.addEventListener("DOMContentLoaded", () => {
+  const API_BASE_URL = "http://localhost:3001";
   let todosInquilinos = null;
   let todosPagamentos = null;
   let todosImoveis = null;
@@ -7,17 +7,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // Fetch inicial dos dados
   async function fetchData() {
     try {
-      const [inquilinosRes, pagamentosRes, imoveisRes] = await Promise.all([
+      const [inquilinosRes, imoveisRes] = await Promise.all([
         fetch(`${API_BASE_URL}/inquilinos`),
-        fetch(`${API_BASE_URL}/todos-pagamentos`),
         fetch(`${API_BASE_URL}/imoveis`),
       ]);
 
       if (!inquilinosRes.ok) throw new Error("Erro ao buscar inquilinos");
-      if (!pagamentosRes.ok) throw new Error("Erro ao buscar pagamentos");
+      if (!imoveisRes.ok) throw new Error("Erro ao buscar imóveis");
 
       todosInquilinos = await inquilinosRes.json();
-      todosPagamentos = await pagamentosRes.json();
       todosImoveis = await imoveisRes.json();
 
       atualizarCards();
@@ -33,25 +31,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function atualizarCards() {
     const cards = document.querySelector(".cards");
 
-    // Garantir que sejam números válidos
-    const totalRecebido = Array.isArray(todosPagamentos)
-      ? todosPagamentos
-          .filter((p) => p?.status === "pago")
-          .reduce((acc, curr) => acc + (Number(curr?.valor) || 0), 0)
-      : 0;
-
-    const totalPendentes = Array.isArray(todosPagamentos)
-      ? todosPagamentos.filter((p) => p?.status === "atrasado")
-      : [];
-
-    // Correção: aplicar toFixed(2) apenas no resultado final
-    const totalAtraso = totalPendentes
-      .reduce(
-        (acc, curr) => acc + (Number(curr?.valor) || 0),
-        0 
-      )
-      .toFixed(2);
-
     cards.innerHTML = `
       <div class="card">
           <h3>Imóveis</h3>
@@ -65,11 +44,11 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
       <div class="card">
           <h3>Recebido</h3>
-          <p>R$ ${totalRecebido.toFixed(2)}</p>
+          <p>R$ total recebido</p>
       </div>
       <div class="card">
           <h3>Em Atraso</h3>
-          <p>R$ ${totalAtraso}</p>
+          <p>R$ total em atraso</p>
       </div>
   `;
   }
@@ -80,31 +59,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     tbody.innerHTML = todosInquilinos
       .map((inquilino) => {
-        const pagamentos = todosPagamentos.filter(
-          (p) => p.inquilino_id === inquilino.id
-        );
-        const ultimoPagamento = pagamentos
-          .filter((p) => p.status === "pago")
-          .sort(
-            (a, b) => new Date(b.data_pagamento) - new Date(a.data_pagamento)
-          )[0];
-
         return `
                 <tr data-id="${inquilino.id}">
                     <td>${inquilino.nome}</td>
-                    <td>${inquilino.numero_imovel}</td>
-                    <td>${
-                      ultimoPagamento
-                        ? formatarData(ultimoPagamento.data_pagamento)
-                        : "Nenhum"
+                    <td>
+                        
+                         "Nenhum"
                     }</td>
-                    <td>${formatarData(inquilino.data_vencimento)}</td>
-                    <td>${
-                      pagamentos.filter((p) => p.status === "atrasado").length
-                    }</td>
-                    <td>${
-                      pagamentos.filter((p) => p.status === "pendente").length
-                    }</td>
+                    <td>data vencimento</td>
+                    <td>teste</td>
+                    <td>
+                      teste
+                    </td>
                 </tr>
             `;
       })
@@ -134,44 +100,43 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Mostrar perfil do inquilino
-  function mostrarPerfil(inquilino, pagamentos) {
-    const perfilSection = document.getElementById("perfilInquilino");
-    const mesesDebito = pagamentos
-      .filter((p) => p.status === "pendente")
-      .map((p) => formatarData(p.data_vencimento));
-
-    // Preencher dados básicos
-    document.getElementById("perfilNome").textContent = inquilino.nome;
-    document.getElementById("perfilTelefone").textContent = inquilino.telefone;
-    document.getElementById(
-      "perfilImovel"
-    ).textContent = `${inquilino.tipo_imovel} - ${inquilino.endereco}, ${inquilino.numero}`;
-
-    // Listar meses em débito
-    const debitoList = document.getElementById("mesesDebito");
-    debitoList.innerHTML = mesesDebito
-      .map((data) => `<li>${data}</li>`)
-      .join("");
-
-    // Controle do botão de cobrança
-    const botaoCobranca = document.getElementById("enviarCobranca");
-    if (mesesDebito.length > 0) {
-      botaoCobranca.style.display = "inline-block";
-      botaoCobranca.onclick = () => enviarCobranca(inquilino.id);
-    } else {
-      botaoCobranca.style.display = "none";
-    }
-
-    perfilSection.style.display = "block";
-  }
-
-  // Função para enviar cobrança (placeholder)
-  function enviarCobranca(inquilinoId) {
-    alert(`Cobrança enviada para o inquilino ID: ${inquilinoId}`);
-    // Implementação futura com integração do Stripe
-  }
-
   // Inicialização
   fetchData();
-});
+});*/
+
+// Mostrar perfil do inquilino
+function mostrarPerfil(inquilino, pagamentos) {
+  const perfilSection = document.getElementById("perfilInquilino");
+  const mesesDebito = pagamentos
+    .filter((p) => p.status === "pendente")
+    .map((p) => formatarData(p.data_vencimento));
+
+  // Preencher dados básicos
+  document.getElementById("perfilNome").textContent = inquilino.nome;
+  document.getElementById("perfilTelefone").textContent = inquilino.telefone;
+  document.getElementById(
+    "perfilImovel"
+  ).textContent = `${inquilino.tipo_imovel} - ${inquilino.endereco}, ${inquilino.numero}`;
+
+  // Listar meses em débito
+  const debitoList = document.getElementById("mesesDebito");
+  debitoList.innerHTML = mesesDebito.map((data) => `<li>${data}</li>`).join("");
+
+  // Controle do botão de cobrança
+  const botaoCobranca = document.getElementById("enviarCobranca");
+  if (mesesDebito.length > 0) {
+    botaoCobranca.style.display = "inline-block";
+    botaoCobranca.onclick = () => enviarCobranca(inquilino.id);
+  } else {
+    botaoCobranca.style.display = "none";
+  }
+
+  perfilSection.style.display = "block";
+}
+
+// Função para enviar cobrança (placeholder)
+function enviarCobranca(inquilinoId) {
+  alert(`Cobrança enviada para o inquilino ID: ${inquilinoId}`);
+  // Implementação futura com integração do Asaas
+}
+

@@ -1,0 +1,153 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f5f7fb;
+    color: #333;
+    padding: 20px;
+  }
+  
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #2f80ed;
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+  }
+  
+  .nav a {
+    color: white;
+    margin-left: 15px;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .nav a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Main container */
+  .container {
+    margin-top: 20px;
+  }
+  
+  /* Botão de ações */
+  .acoes {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .acoes button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #2f80ed;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .acoes button:hover {
+    background-color: #1c65c8;
+  }
+  
+  /* Formulário */
+  .formInquilino {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  
+  .formInquilino h3 {
+    margin-bottom: 15px;
+  }
+  
+  .formInquilino form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .formInquilino label {
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  
+  .formInquilino input {
+    margin-bottom: 15px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .formInquilino .buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .formInquilino button {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .formInquilino button[type="submit"] {
+    background-color: #2f80ed;
+    color: white;
+  }
+  
+  .formInquilino button[type="submit"]:hover {
+    background-color: #1c65c8;
+  }
+  
+  .formInquilino button[type="button"] {
+    background-color: #ccc;
+    color: #333;
+  }
+  
+  .formInquilino button[type="button"]:hover {
+    background-color: #bbb;
+  }
+  
+  /* Lista de Inquilinos */
+  .listaInquilinos {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  
+  .listaInquilinos h2 {
+    margin-bottom: 15px;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  thead {
+    background-color: #2f80ed;
+    color: white;
+  }
+  
+  th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
+  
+  tr:hover {
+    background-color: #f1f1f1;
+  }
+  

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LocaPay</title>
+  <link rel="stylesheet" href="./styles/inquilinos.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>Olá, Marcos!</h1>
+    <nav class="nav">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="#">Imóveis</a>
+      <a href="inquilinos.html">Inquilinos</a>
+      <a href="#">Financeiro</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h1>Gerenciar Inquilinos</h1>
+
+    <section class="acoes">
+      <button onclick="showFormInquilino()">➕ Adicionar Inquilino</button>
+    </section>
+
+    <section id="FormInquilino" class="formInquilino" style="display: none;">
+      <h3>Adicionar Inquilino</h3>
+      <form id="formInquilino" onsubmit="sendFormInquilino(event)">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" required />
+
+        <label for="telefone">Telefone:</label>
+        <input type="tel" id="telefone" required />
+
+        <label for="cpfCnpj">CPF/CNPJ:</label>
+        <input type="text" id="cpfCnpj" required />
+
+        <div class="buttons">
+          <button type="submit">Adicionar</button>
+          <button type="button" onclick="hideFormInquilino()">Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="listaInquilinos">
+      <h2>Lista de Inquilinos</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Telefone</th>
+            <th>CPF/CNPJ</th>
+            <th>Imóvel</th>
+            
+          </tr>
+        </thead>
+        <tbody id="tabelaInquilinos">
+          <!-- Inquilinos inseridos aparecerão aqui via JS -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="./scripts/inquilinos.js"></script>
+</body>
+</html>

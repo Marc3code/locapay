@@ -1,66 +1,78 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard do Locador</title>
-  <link rel="stylesheet" href="./styles/style.css" />
-</head>
-<body>
-  <header class="header">
-    <div class="logo">LocaPay</div>
-    <nav class="nav">
-      <a href="index.html">Dashboard</a>
-      <a href="#">Imóveis</a>
-      <a href="#">Inquilinos</a>
-      <a href="#">Financeiro</a>
-    </nav>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard do Locador</title>
+    <link rel="stylesheet" href="./styles/style.css" />
+  </head>
+  <body>
+    <header class="header">
+      <h1>Olá, Marcos!</h1>
+      <nav class="nav">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="#">Imóveis</a>
+        <a href="inquilinos.html">Inquilinos</a>
+        <a href="#">Financeiro</a>
+      </nav>
+    </header>
 
-  <main class="container">
-    <h1>Olá, Marcos!</h1>
+    <main class="container">
+      
 
-    <section class="cards">
-      <!-- Preenchido dinamicamente pelo JS -->
-    </section>
+      <section class="cards">
+        <!-- Preenchido dinamicamente pelo JS -->
+      </section>
 
-    <section class="pagamentos">
-      <h2>Últimos Pagamentos</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Inquilino</th>
-            <th>N° Imóvel</th>
-            <th>Último Pagamento</th>
-            <th>Próximo Vencimento</th>
-            <th>N° Pagamentos em Atrasos</th>
-            <th>N° pagamentos pendentes</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Preenchido via JS -->
-        </tbody>
-      </table>
-    </section>
+      <section class="pagamentos">
+        <h2>Últimos Pagamentos</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Inquilino</th>
+              <th>Último Pagamento</th>
+              <th>Próximo Vencimento</th>
+              <th>N° Pagamentos em Atrasos</th>
+              <th>N° pagamentos pendentes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Preenchido via JS -->
+          </tbody>
+        </table>
+      </section>
 
-    <section id="perfilInquilino" class="perfil" style="display: none;">
-      <h3>Mini Perfil do Inquilino</h3>
-      <p><strong>Nome:</strong> <span id="perfilNome"></span></p>
-      <p><strong>Email:</strong> <span id="perfilEmail"></span></p>
-      <p><strong>Telefone:</strong> <span id="perfilTelefone"></span></p>
-      <p><strong>Imóvel:</strong> <span id="perfilImovel"></span></p>
-      <h4>Meses em débito:</h4>
-      <ul id="mesesDebito"></ul>
-    </section>
+      <section id="perfilInquilino" class="perfil" style="display: none">
+        <h3>Mini Perfil do Inquilino</h3>
+        <p><strong>Nome:</strong> <span id="perfilNome"></span></p>
+        <p><strong>Email:</strong> <span id="perfilEmail"></span></p>
+        <p><strong>Telefone:</strong> <span id="perfilTelefone"></span></p>
+        <p><strong>Imóvel:</strong> <span id="perfilImovel"></span></p>
+        <h4>Meses em débito:</h4>
+        <ul id="mesesDebito"></ul>
+      </section>
 
-    <section class="acoes">
-      <button onclick="location.href='sucesso.html'">➕ Adicionar Imóvel</button>
-      <button onclick="location.href='falha.html'">➕ Adicionar Inquilino</button>
-      <button>📤 Enviar Cobrança</button>
-      <button>📃 Gerar Relatório</button>
-    </section>
-  </main>
+      <section id="FormInquilino" class="formInquilino" style="display: none">
+        <h3>Adicionar Inquilino</h3>
+        <form id="formInquilino" onsubmit="sendFormInquilino(event)">
+          <label for="nome">Nome:</label>
+          <input type="text" id="nome" required />
+          <label for="telefone">Telefone:</label>
+          <input type="tel" id="telefone" required />
+          <label for="cpfCnpj">CPF/CNPJ:</label>
+          <input type="text" id="cpfCnpj" required />
+          <button type="submit">Adicionar</button>
+          
+        </form>
+      </section>
 
-  <script src="./scripts/dashboard.js"></script>
-</body>
+      <section class="acoes">
+        <button onclick="location.href='sucesso.html'">
+          ➕ Adicionar Imóvel
+        </button>
+      </section>
+    </main>
+
+    <script src="./scripts/dashboard.js"></script>
+  </body>
 </html>
