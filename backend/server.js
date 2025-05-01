@@ -89,6 +89,39 @@ app.get("/pagamentos", async (req, res) => {
   }
 });
 
+app.get("/cobrancas", async (req, res) => {
+  const { data } = req.query;
+  try {
+    const [results] = await db.query(
+      `SELECT ii.*, i.id_asaas FROM inquilinos_imoveis ii INNER JOIN inquilinos i ON ii.inquilino_id = i.id WHERE ii.data_vencimento = ? AND ii.status = 'ativo'`,
+      [data]
+    );
+    res.json(results);
+  } catch (err) {
+    console.error("Erro ao buscar cobranças:", err);
+    res.status(500).json({ erro: "Erro ao buscar cobranças" });
+  }
+});
+
+app.put("/cobrancas/:id", async (req, res) => {
+  const { id } = req.params;
+  const { data_vencimento } = req.body;
+
+  const query = `UPDATE inquilinos_imoveis SET data_vencimento = ? WHERE id = ?`;
+  const values = [data_vencimento, id];
+
+  db.query(query, values, (err, results) => {
+    if (err) {
+      console.error("Erro ao atualizar cobrança:", err);
+      return res.status(500).json({ erro: "Erro ao atualizar cobrança" });
+    }
+    res.status(200).json({
+      id,
+      data_vencimento,
+    });
+  });
+});
+
 // ------------------ ROTAS POST ------------------
 
 // Rota POST - Adicionar imóvel (atualizada com complemento)
@@ -194,7 +227,7 @@ app.post("/pagamentos", async (req, res) => {
 
   try {
     pagamento = await asaas.gerarPagamentoPix(id_asaas, valor, data_vencimento);
-    res.status(201).json(pagamento);
+    res.json(pagamento);
   } catch (err) {
     console.error("Erro ao criar cobrança:", err);
     res.status(500).json({ erro: "Erro ao criar cobrança" });
@@ -208,7 +241,14 @@ app.post("/pagamentos", async (req, res) => {
     const query =
       "INSERT INTO pagamentos (inquilino_id, asaas_payment_id, due_date, payment_date, amount, link_pagamento) VALUES (?, ?, ?, ?, ?, ?)";
 
-    const values = [inquilino_id, pagamento.id, data_vencimento, null, valor, pagamento.invoiceUrl];
+    const values = [
+      inquilino_id,
+      pagamento.id,
+      data_vencimento,
+      null,
+      valor,
+      pagamento.invoiceUrl,
+    ];
 
     const [results] = await db.query(query, values, (err, results) => {
       if (err) {
@@ -231,7 +271,7 @@ app.post("/pagamentos", async (req, res) => {
   }
 });
 
-// Rota GET - Buscar inquilino por telefone (atualizada)
+// Rota GET - Buscar inquilino por telefone
 app.get("/getinquilino/:telefone", async (req, res) => {
   const { telefone } = req.params;
   try {

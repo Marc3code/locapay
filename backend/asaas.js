@@ -1,11 +1,12 @@
-// asaas.js
-
 const axios = require('axios');
 const dotenv = require('dotenv');
+
 dotenv.config();
 
 const BASE_URL = 'https://sandbox.asaas.com/api/v3'; // para ambiente de testes
 // Para produção: 'https://www.asaas.com/api/v3'
+
+
 
 const gerarPagamentoPix = async (customerId, value, dueDate) => { //trocar os parametros para um array de objetos
   try {
@@ -17,12 +18,11 @@ const gerarPagamentoPix = async (customerId, value, dueDate) => { //trocar os pa
     }, {
       headers: {
         'Content-Type': 'application/json',
-        'access_token': process.env.ASAAS_SECRET_KEY, 
+        'access_token': process.env.ASAAS_API_KEY 
       },
     });
 
     console.log('Cobrança criada com sucesso!');
-    console.log(response.data);
     return response.data;
   } catch (err) {
     console.error('Erro ao criar pagamento:', err.response?.data || err.message);
@@ -36,7 +36,7 @@ const criarClienteAsaas = async (clienteData) => {
     const response = await axios.post(`${BASE_URL}/customers`, clienteData, {
       headers: {
         'Content-Type': 'application/json',
-        'access_token': process.env.ASAAS_SECRET_KEY, 
+        'access_token': process.env.ASAAS_API_KEY, 
       },
     });
     return response.data.id;
